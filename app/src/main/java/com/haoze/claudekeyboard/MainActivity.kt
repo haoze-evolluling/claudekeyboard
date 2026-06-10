@@ -199,8 +199,10 @@ class MainActivity : AppCompatActivity() {
     private fun updateStatusUI(isConnected: Boolean, deviceName: String?) {
         if (isConnected) {
             statusChip.text = getString(R.string.status_connected, deviceName ?: getString(R.string.status_unknown_device))
-            statusChip.setChipBackgroundColorResource(R.color.status_connected_bg)
-            statusChip.setTextColor(ContextCompat.getColor(this, R.color.status_connected))
+            statusChip.setChipBackgroundColorResource(android.R.color.transparent)
+            statusChip.setTextColor(getColor(R.color.status_connected))
+            statusChip.setChipStrokeColorResource(R.color.primary)
+            statusChip.chipIconTint = getColorStateList(R.color.primary)
             btnDisconnect.text = getString(R.string.settings_disconnect)
             btnDisconnect.visibility = View.VISIBLE
             enableAllButtons()
@@ -211,8 +213,10 @@ class MainActivity : AppCompatActivity() {
             } else {
                 statusChip.text = getString(R.string.status_waiting)
             }
-            statusChip.setChipBackgroundColorResource(R.color.chip_bg)
-            statusChip.setTextColor(ContextCompat.getColor(this, R.color.chip_text))
+            statusChip.setChipBackgroundColorResource(android.R.color.transparent)
+            statusChip.setTextColor(getColor(R.color.status_waiting))
+            statusChip.setChipStrokeColorResource(R.color.outline)
+            statusChip.chipIconTint = getColorStateList(R.color.on_surface_variant)
             btnDisconnect.text = getString(R.string.btn_connect)
             btnDisconnect.visibility = if (hidService?.hasLastConnectedDevice() == true) View.VISIBLE else View.GONE
             disableAllButtons()
