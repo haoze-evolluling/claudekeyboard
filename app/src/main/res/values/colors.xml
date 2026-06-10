@@ -4,36 +4,41 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Theme colors -->
-    <color name="primary">#1565C0</color>
-    <color name="primary_dark">#0D47A1</color>
-    <color name="primary_light">#42A5F5</color>
+    <!-- M3 Color Roles - Light Mode -->
+    <color name="primary">#0593FF</color>
+    <color name="on_primary">#FFFFFF</color>
     <color name="primary_container">#D1E4FF</color>
+    <color name="on_primary_container">#001D36</color>
 
     <color name="secondary">#546E7A</color>
-    <color name="secondary_dark">#37474F</color>
-    <color name="secondary_light">#78909C</color>
+    <color name="on_secondary">#FFFFFF</color>
     <color name="secondary_container">#CFD8DC</color>
+    <color name="on_secondary_container">#0E1D22</color>
+
+    <color name="tertiary">#6B5778</color>
+    <color name="on_tertiary">#FFFFFF</color>
+    <color name="tertiary_container">#F2DAFF</color>
+    <color name="on_tertiary_container">#251432</color>
+
+    <color name="error">#BA1A1A</color>
+    <color name="on_error">#FFFFFF</color>
+    <color name="error_container">#FFDAD6</color>
+    <color name="on_error_container">#410002</color>
 
     <color name="surface">#FAFAFA</color>
-    <color name="surface_card">#FFFFFF</color>
-    <color name="on_surface">#212121</color>
-    <color name="on_surface_secondary">#757575</color>
+    <color name="on_surface">#1A1A1A</color>
+    <color name="on_surface_variant">#666666</color>
+    <color name="surface_variant">#E0E0E0</color>
 
-    <color name="outline">#BDBDBD</color>
-    <color name="divider">#E0E0E0</color>
+    <color name="outline">#CCCCCC</color>
+    <color name="outline_variant">#E0E0E0</color>
 
-    <color name="error">#D32F2F</color>
+    <color name="inverse_surface">#2E2E2E</color>
+    <color name="inverse_on_surface">#F0F0F0</color>
+    <color name="inverse_primary">#9ECAFF</color>
 
-    <!-- Status colors -->
-    <color name="status_connected">#2E7D32</color>
-    <color name="status_connected_bg">#E8F5E9</color>
-    <color name="status_disconnected">#C62828</color>
-    <color name="status_disconnected_bg">#FFEBEE</color>
-    <color name="status_waiting">#EF6C00</color>
-    <color name="status_waiting_bg">#FFF3E0</color>
-
-    <!-- Chip colors -->
-    <color name="chip_bg">#E3F2FD</color>
-    <color name="chip_text">#1565C0</color>
+    <!-- Status colors (semantic, not M3 roles) -->
+    <color name="status_connected">#0593FF</color>
+    <color name="status_waiting">#666666</color>
+    <color name="status_disconnected">#BA1A1A</color>
 </resources>

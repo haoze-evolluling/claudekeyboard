@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- M3 Color Roles - Dark Mode -->
+    <color name="primary">#66B8FF</color>
+    <color name="on_primary">#003258</color>
+    <color name="primary_container">#00497D</color>
+    <color name="on_primary_container">#D1E4FF</color>
+
+    <color name="secondary">#90A8B0</color>
+    <color name="on_secondary">#1B333B</color>
+    <color name="secondary_container">#324A52</color>
+    <color name="on_secondary_container">#CFD8DC</color>
+
+    <color name="tertiary">#D6BEE4</color>
+    <color name="on_tertiary">#3A2A49</color>
+    <color name="tertiary_container">#523F60</color>
+    <color name="on_tertiary_container">#F2DAFF</color>
+
+    <color name="error">#FFB4AB</color>
+    <color name="on_error">#690005</color>
+    <color name="error_container">#93000A</color>
+    <color name="on_error_container">#FFDAD6</color>
+
+    <color name="surface">#121212</color>
+    <color name="on_surface">#E0E0E0</color>
+    <color name="on_surface_variant">#999999</color>
+    <color name="surface_variant">#444444</color>
+
+    <color name="outline">#444444</color>
+    <color name="outline_variant">#333333</color>
+
+    <color name="inverse_surface">#E0E0E0</color>
+    <color name="inverse_on_surface">#1A1A1A</color>
+    <color name="inverse_primary">#0593FF</color>
+
+    <!-- Status colors (semantic, not M3 roles) -->
+    <color name="status_connected">#66B8FF</color>
+    <color name="status_waiting">#999999</color>
+    <color name="status_disconnected">#FFB4AB</color>
+</resources>
