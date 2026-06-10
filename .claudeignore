@@ -1,0 +1,69 @@
+# ============================================
+# .claudeignore - Claude Code 排除规则
+# ============================================
+
+# Git 内部文件
+.git/
+
+# Gradle 构建缓存与输出
+.gradle/
+build/
+**/build/
+gradle/wrapper/gradle-wrapper.jar
+
+# IDE 配置文件
+.idea/
+*.iml
+
+# Android Studio 生成目录
+.externalNativeBuild/
+.cxx/
+bin/
+gen/
+out/
+captures/
+.navigation/
+
+# 二进制产物
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+*.jar
+*.so
+*.aar
+
+# 本地配置（含机器路径等敏感信息）
+local.properties
+
+# 签名文件
+*.jks
+*.keystore
+
+# 启动图标等资源图片（二进制，对代码理解无帮助）
+**/mipmap-*/
+**/ic_launcher*.xml
+
+# Google Services 配置
+google-services.json
+
+# CI/CD 与第三方工具
+fastlane/
+freeline/
+freeline.py
+freeline_project_description.json
+lint/intermediates/
+lint/generated/
+lint/outputs/
+lint/tmp/
+
+# 操作系统生成文件
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+
+# Kotlin 编译产物
+*.kotlin_module

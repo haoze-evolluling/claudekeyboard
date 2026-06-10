@@ -1,3 +1,51 @@
 <resources>
-    <string name="app_name">claudekeyboard</string>
+    <string name="app_name">Claude Code keyboard</string>
+
+    <!-- Button labels -->
+    <string name="btn_yes">确认 (y ↵)</string>
+    <string name="btn_no">拒绝 (n ↵)</string>
+    <string name="btn_ctrl_c">Ctrl+C</string>
+    <string name="btn_yes_to_all">全部确认 (y! ↵)</string>
+    <string name="btn_add_macro">+ 添加自定义宏</string>
+    <string name="btn_send">发送</string>
+    <string name="hint_input_text">输入文本…</string>
+
+    <!-- Status messages -->
+    <string name="status_waiting">等待配对…</string>
+    <string name="status_connected">已连接: %s</string>
+    <string name="status_disconnected">未连接</string>
+    <string name="status_bluetooth_off">蓝牙已关闭</string>
+    <string name="status_not_supported">此设备不支持蓝牙HID</string>
+    <string name="status_unknown_device">未知设备</string>
+
+    <!-- Notification -->
+    <string name="notification_channel_name">蓝牙HID服务</string>
+    <string name="notification_channel_description">显示蓝牙HID键盘连接状态</string>
+    <string name="notification_title">Claude Code keyboard</string>
+    <string name="notification_waiting">等待配对…</string>
+    <string name="notification_connected">已连接: %s</string>
+
+    <!-- Dialog titles -->
+    <string name="dialog_add_macro">添加自定义宏</string>
+    <string name="dialog_edit_macro">编辑宏</string>
+    <string name="dialog_macro_label">标签</string>
+    <string name="dialog_macro_command">命令</string>
+    <string name="dialog_save">保存</string>
+    <string name="dialog_cancel">取消</string>
+    <string name="dialog_delete">删除</string>
+    <string name="dialog_delete_macro">删除宏</string>
+    <string name="dialog_delete_macro_message">确定要删除这个宏吗？</string>
+
+    <!-- Toast messages -->
+    <string name="toast_bluetooth_not_supported">此设备不支持蓝牙HID</string>
+    <string name="toast_permission_denied">蓝牙权限被拒绝</string>
+    <string name="toast_send_failed">发送按键失败</string>
+    <string name="toast_macro_added">宏已添加</string>
+    <string name="toast_macro_updated">宏已更新</string>
+    <string name="toast_macro_deleted">宏已删除</string>
+
+    <!-- Settings -->
+    <string name="settings_title">设置</string>
+    <string name="settings_disconnect">断开连接</string>
+    <string name="settings_reset_macros">重置宏为默认值</string>
 </resources>

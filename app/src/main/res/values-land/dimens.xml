@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Landscape-specific dimension overrides -->
+
+    <!-- Core button dimensions (using weight, no fixed width/height needed) -->
+    <dimen name="core_button_width">0dp</dimen>
+    <dimen name="core_button_height">0dp</dimen>
+    <dimen name="core_button_margin">8dp</dimen>
+    <dimen name="core_button_text_size">18sp</dimen>
+
+    <!-- Macro button dimensions (optimized for landscape) -->
+    <dimen name="macro_button_width">0dp</dimen>
+    <dimen name="macro_button_height">80dp</dimen>
+    <dimen name="macro_button_margin">6dp</dimen>
+    <dimen name="macro_button_text_size">14sp</dimen>
+
+    <!-- Keyboard dimensions (using weight, no fixed width/height needed) -->
+    <dimen name="key_width">0dp</dimen>
+    <dimen name="key_height">0dp</dimen>
+    <dimen name="key_margin">2dp</dimen>
+    <dimen name="key_text_size">15sp</dimen>
+    <dimen name="key_special_width">0dp</dimen>
+    <dimen name="key_space_width">0dp</dimen>
+
+    <!-- Floating button -->
+    <dimen name="floating_button_size">48dp</dimen>
+    <dimen name="floating_button_margin">12dp</dimen>
+    <dimen name="floating_button_text_size">15sp</dimen>
+</resources>

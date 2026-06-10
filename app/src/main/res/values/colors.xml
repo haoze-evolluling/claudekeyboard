@@ -2,4 +2,35 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Button colors -->
+    <color name="btn_yes">#4CAF50</color>
+    <color name="btn_no">#F44336</color>
+    <color name="btn_ctrl_c">#FF9800</color>
+    <color name="btn_yes_to_all">#66BB6A</color>
+    <color name="btn_macro">#424242</color>
+    <color name="btn_macro_border">#616161</color>
+    <color name="btn_floating">#2196F3</color>
+
+    <!-- Text colors -->
+    <color name="btn_text">#FFFFFF</color>
+    <color name="btn_macro_text">#FFFFFF</color>
+
+    <!-- Background colors -->
+    <color name="background_dark">#1E1E1E</color>
+    <color name="background_status_bar">#2D2D2D</color>
+    <color name="background_keyboard">#252525</color>
+
+    <!-- Status colors -->
+    <color name="status_connected">#4CAF50</color>
+    <color name="status_disconnected">#F44336</color>
+    <color name="status_waiting">#FF9800</color>
+
+    <!-- Keyboard key colors -->
+    <color name="key_normal">#333333</color>
+    <color name="key_pressed">#555555</color>
+    <color name="key_modifier">#1976D2</color>
+    <color name="key_modifier_pressed">#1565C0</color>
+    <color name="key_special">#424242</color>
+    <color name="key_text">#FFFFFF</color>
 </resources>

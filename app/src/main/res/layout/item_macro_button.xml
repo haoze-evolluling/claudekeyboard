@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center"
+    android:padding="@dimen/macro_button_margin">
+
+    <Button
+        android:id="@+id/btn_macro"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/macro_button_height"
+        android:textSize="@dimen/macro_button_text_size"
+        android:background="@drawable/btn_macro"
+        android:textColor="@color/btn_macro_text"
+        android:textAllCaps="false"
+        android:maxLines="2"
+        android:gravity="center"
+        android:padding="8dp" />
+
+</LinearLayout>
