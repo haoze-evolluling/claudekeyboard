@@ -36,11 +36,6 @@
         <item name="colorOutline">@color/outline</item>
         <item name="colorOutlineVariant">@color/outline_variant</item>
 
-        <!-- Inverse -->
-        <item name="colorInverseSurface">@color/inverse_surface</item>
-        <item name="colorInverseOnSurface">@color/inverse_on_surface</item>
-        <item name="colorInversePrimary">@color/inverse_primary</item>
-
         <!-- Status & navigation bars -->
         <item name="android:statusBarColor">@color/surface</item>
         <item name="android:navigationBarColor">@color/surface</item>

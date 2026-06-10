@@ -93,7 +93,7 @@ open class KeyboardSender(
      * @param keyCode HID key code
      * @param delayMs Delay between press and release
      */
-    fun sendKeyPress(modifier: Byte, keyCode: Byte, delayMs: Long = 20) {
+    fun sendKeyPress(modifier: Byte, keyCode: Byte, delayMs: Long = 30) {
         keyboardReport.reset()
         keyboardReport.bytes[0] = modifier
         keyboardReport.key1 = keyCode
@@ -107,7 +107,7 @@ open class KeyboardSender(
      * @param text The string to type
      * @param delayMs Delay between each character
      */
-    fun sendText(text: String, delayMs: Long = 30) {
+    fun sendText(text: String, delayMs: Long = 50) {
         for (char in text) {
             val hidCode = charToHidCode(char) ?: continue
             sendKeyPress(hidCode.first, hidCode.second)
