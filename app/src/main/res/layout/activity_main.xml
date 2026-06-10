@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark"
+    android:background="@color/white"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
@@ -33,7 +33,7 @@
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:text="@string/status_waiting"
-            android:textColor="@color/btn_text"
+            android:textColor="@color/black"
             android:textSize="@dimen/status_text_size" />
 
         <Button
@@ -42,6 +42,8 @@
             android:layout_height="wrap_content"
             android:text="@string/settings_disconnect"
             android:textSize="12sp"
+            android:textColor="@color/black"
+            android:backgroundTint="@color/sky_blue_light"
             android:visibility="gone" />
 
         <Button
@@ -50,8 +52,16 @@
             android:layout_height="wrap_content"
             android:text="⚙"
             android:textSize="18sp"
+            android:textColor="@color/black"
+            android:backgroundTint="@color/sky_blue_light"
             android:layout_marginStart="8dp" />
     </LinearLayout>
+
+    <!-- Black divider line -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/divider_black" />
 
     <!-- Main Content Area -->
     <LinearLayout
@@ -144,6 +154,12 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!-- Black vertical divider -->
+        <View
+            android:layout_width="2dp"
+            android:layout_height="match_parent"
+            android:background="@color/divider_black" />
+
         <!-- Macro Buttons Area (Right) -->
         <LinearLayout
             android:layout_width="0dp"
@@ -166,8 +182,8 @@
                     android:layout_height="48dp"
                     android:layout_weight="1"
                     android:hint="@string/hint_input_text"
-                    android:textColor="@color/btn_text"
-                    android:textColorHint="@color/status_waiting"
+                    android:textColor="@color/black"
+                    android:textColorHint="#999999"
                     android:textSize="16sp"
                     android:background="@drawable/btn_floating"
                     android:paddingHorizontal="12dp"
@@ -186,6 +202,13 @@
                     android:textColor="@color/btn_text"
                     android:paddingHorizontal="16dp" />
             </LinearLayout>
+
+            <!-- Black horizontal divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_marginBottom="8dp"
+                android:background="@color/divider_black" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_macros"

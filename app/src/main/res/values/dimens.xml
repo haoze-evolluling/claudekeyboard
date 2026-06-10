@@ -30,10 +30,16 @@
     <dimen name="key_special_width">0dp</dimen>
     <dimen name="key_space_width">0dp</dimen>
 
-    <!-- Corner radius -->
-    <dimen name="button_corner_radius">16dp</dimen>
+    <!-- Unified corner radius -->
+    <dimen name="corner_radius">12dp</dimen>
+    <dimen name="button_corner_radius">12dp</dimen>
     <dimen name="macro_corner_radius">12dp</dimen>
-    <dimen name="key_corner_radius">4dp</dimen>
+    <dimen name="key_corner_radius">12dp</dimen>
+
+    <!-- Unified border width -->
+    <dimen name="border_width">2dp</dimen>
+    <dimen name="button_border_width">2dp</dimen>
+    <dimen name="divider_width">2dp</dimen>
 
     <!-- Padding -->
     <dimen name="button_padding">8dp</dimen>

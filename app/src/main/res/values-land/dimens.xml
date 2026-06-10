@@ -26,4 +26,15 @@
     <dimen name="floating_button_size">48dp</dimen>
     <dimen name="floating_button_margin">12dp</dimen>
     <dimen name="floating_button_text_size">15sp</dimen>
+
+    <!-- Unified corner radius (same as portrait) -->
+    <dimen name="corner_radius">12dp</dimen>
+    <dimen name="button_corner_radius">12dp</dimen>
+    <dimen name="macro_corner_radius">12dp</dimen>
+    <dimen name="key_corner_radius">12dp</dimen>
+
+    <!-- Unified border width (same as portrait) -->
+    <dimen name="border_width">2dp</dimen>
+    <dimen name="button_border_width">2dp</dimen>
+    <dimen name="divider_width">2dp</dimen>
 </resources>
