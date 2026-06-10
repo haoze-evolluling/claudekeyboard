@@ -8,6 +8,7 @@
     <string name="btn_yes_to_all">全部确认 (y! ↵)</string>
     <string name="btn_add_macro">+ 添加自定义宏</string>
     <string name="btn_send">发送</string>
+    <string name="btn_connect">连接</string>
     <string name="hint_input_text">输入文本…</string>
 
     <!-- Status messages -->
@@ -40,6 +41,7 @@
     <string name="toast_bluetooth_not_supported">此设备不支持蓝牙HID</string>
     <string name="toast_permission_denied">蓝牙权限被拒绝</string>
     <string name="toast_send_failed">发送按键失败</string>
+    <string name="toast_connect_failed">连接失败，请确认对端蓝牙已开启</string>
     <string name="toast_macro_added">宏已添加</string>
     <string name="toast_macro_updated">宏已更新</string>
     <string name="toast_macro_deleted">宏已删除</string>

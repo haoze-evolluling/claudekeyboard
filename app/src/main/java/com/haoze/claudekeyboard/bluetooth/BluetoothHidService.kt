@@ -27,6 +27,7 @@ import java.util.concurrent.Executors
 
 /**
  * Foreground service that manages Bluetooth HID device registration and connection.
+ * Uses Kontroller's DescriptorCollection for HID descriptors and KeyboardSender for report sending.
  */
 class BluetoothHidService : Service() {
 
@@ -34,7 +35,7 @@ class BluetoothHidService : Service() {
         private const val TAG = "BluetoothHidService"
         private const val NOTIFICATION_CHANNEL_ID = "bluetooth_hid_channel"
         private const val NOTIFICATION_ID = 1001
-        private const val HID_REPORT_ID: Byte = 0x01
+        private const val MAX_REGISTRATION_RETRIES = 3
     }
 
     // Binder given to clients
@@ -45,14 +46,20 @@ class BluetoothHidService : Service() {
     private var hidDevice: BluetoothHidDevice? = null
     private var connectedDevice: BluetoothDevice? = null
 
+    // Keyboard sender (created on connection)
+    private var keyboardSender: KeyboardSender? = null
+
     // Callbacks
     private var onConnectionStateChanged: ((Boolean, String?) -> Unit)? = null
     private var onRegistrationStateChanged: ((Boolean) -> Unit)? = null
 
     // State
     private var isRegistered = false
+    private var isRegistering = false
     private var isConnected = false
     private var userInitiatedDisconnect = false
+    private var isShuttingDown = false
+    private var registrationRetryCount = 0
 
     // Last connected device address (for auto-reconnect)
     private var lastConnectedDeviceAddress: String? = null
@@ -70,16 +77,29 @@ class BluetoothHidService : Service() {
                     BluetoothAdapter.STATE_ON -> {
                         Log.d(TAG, "Bluetooth turned on, re-initializing HID")
                         isRegistered = false
+                        isRegistering = false
                         isConnected = false
+                        registrationRetryCount = 0
                         connectedDevice = null
+                        keyboardSender = null
+                        mainHandler.removeCallbacksAndMessages(null)
+                        hidDevice?.let {
+                            try { bluetoothAdapter?.closeProfileProxy(BluetoothProfile.HID_DEVICE, it) } catch (_: Exception) {}
+                        }
                         hidDevice = null
-                        initializeHidDevice()
+                        // Delay initialization to let Bluetooth stack stabilize
+                        mainHandler.postDelayed({
+                            initializeHidDevice()
+                        }, 1000)
                     }
                     BluetoothAdapter.STATE_OFF -> {
                         Log.d(TAG, "Bluetooth turned off")
                         isRegistered = false
+                        isRegistering = false
                         isConnected = false
+                        registrationRetryCount = 0
                         connectedDevice = null
+                        keyboardSender = null
                         hidDevice?.let {
                             bluetoothAdapter?.closeProfileProxy(BluetoothProfile.HID_DEVICE, it)
                         }
@@ -107,7 +127,7 @@ class BluetoothHidService : Service() {
         super.onCreate()
         Log.d(TAG, "Service created")
 
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        bluetoothAdapter = (getSystemService(Context.BLUETOOTH_SERVICE) as? android.bluetooth.BluetoothManager)?.adapter
         if (bluetoothAdapter == null) {
             Log.e(TAG, "Bluetooth not supported")
             stopSelf()
@@ -131,6 +151,7 @@ class BluetoothHidService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "Service destroyed")
+        isShuttingDown = true
         mainHandler.removeCallbacksAndMessages(null)
         try {
             unregisterReceiver(bluetoothStateReceiver)
@@ -156,6 +177,11 @@ class BluetoothHidService : Service() {
     }
 
     /**
+     * Get the keyboard sender. Null if not connected.
+     */
+    fun getKeyboardSender(): KeyboardSender? = keyboardSender
+
+    /**
      * Initialize the HID device profile proxy.
      */
     private fun initializeHidDevice() {
@@ -166,6 +192,7 @@ class BluetoothHidService : Service() {
                     hidDevice = proxy as BluetoothHidDevice
                     Log.d(TAG, "HID device proxy obtained")
                     registerHidDevice()
+                    setDiscoverable()
                 }
             }
 
@@ -180,7 +207,7 @@ class BluetoothHidService : Service() {
     }
 
     /**
-     * Register this device as an HID device.
+     * Register this device as an HID device using Kontroller's DescriptorCollection.
      */
     private fun registerHidDevice() {
         val hidDevice = hidDevice ?: return
@@ -189,57 +216,44 @@ class BluetoothHidService : Service() {
             Log.d(TAG, "HID device already registered, skipping")
             return
         }
+        if (isRegistering) {
+            Log.d(TAG, "HID device registration already in progress, skipping")
+            return
+        }
 
-        // Clean up any stale registration from a previous session (e.g. after crash)
+        // Clean up any stale registration (safe to call even if not registered)
         try {
             hidDevice.unregisterApp()
         } catch (e: Exception) {
             Log.w(TAG, "Failed to unregister stale app: ${e.message}")
         }
 
-        // Standard keyboard HID Report Descriptor
-        // Report: [modifier(1) + reserved(1) + keys(6)] = 8 bytes
-        val descriptor = byteArrayOf(
-            0x05.toByte(), 0x01.toByte(),  // Usage Page (Generic Desktop)
-            0x09.toByte(), 0x06.toByte(),  // Usage (Keyboard)
-            0xA1.toByte(), 0x01.toByte(),  // Collection (Application)
-            0x85.toByte(), HID_REPORT_ID,  //   Report ID (1)
-            // Modifier byte
-            0x75.toByte(), 0x08.toByte(),  //   Report Size (8)
-            0x95.toByte(), 0x01.toByte(),  //   Report Count (1)
-            0x05.toByte(), 0x07.toByte(),  //   Usage Page (Keyboard/Keypad)
-            0x19.toByte(), 0xE0.toByte(),  //   Usage Minimum (Left Control)
-            0x29.toByte(), 0xE7.toByte(),  //   Usage Maximum (Right GUI)
-            0x15.toByte(), 0x00.toByte(),  //   Logical Minimum (0)
-            0x25.toByte(), 0x01.toByte(),  //   Logical Maximum (1)
-            0x81.toByte(), 0x02.toByte(),  //   Input (Data, Variable, Absolute)
-            // Reserved byte
-            0x75.toByte(), 0x08.toByte(),  //   Report Size (8)
-            0x95.toByte(), 0x01.toByte(),  //   Report Count (1)
-            0x81.toByte(), 0x01.toByte(),  //   Input (Constant)
-            // Key array (6 keys)
-            0x75.toByte(), 0x08.toByte(),  //   Report Size (8)
-            0x95.toByte(), 0x06.toByte(),  //   Report Count (6)
-            0x15.toByte(), 0x00.toByte(),  //   Logical Minimum (0)
-            0x25.toByte(), 0x65.toByte(),  //   Logical Maximum (101)
-            0x05.toByte(), 0x07.toByte(),  //   Usage Page (Keyboard/Keypad)
-            0x19.toByte(), 0x00.toByte(),  //   Usage Minimum (0)
-            0x29.toByte(), 0x65.toByte(),  //   Usage Maximum (101)
-            0x81.toByte(), 0x00.toByte(),  //   Input (Data, Array)
-            0xC0.toByte()                  // End Collection
-        )
-
         val sdpSettings = BluetoothHidDeviceAppSdpSettings(
             "Claude Code Keyboard",
             "Claude Code Bluetooth HID Keyboard",
             "Claude Code",
             BluetoothHidDevice.SUBCLASS1_KEYBOARD,
-            descriptor
+            DescriptorCollection.KEYBOARD
         )
 
         val executor = Executors.newSingleThreadExecutor()
 
-        hidDevice.registerApp(sdpSettings, null, null, executor, object : BluetoothHidDevice.Callback() {
+        val callback = object : BluetoothHidDevice.Callback() {
+            override fun onAppStatusChanged(pluggedDevice: BluetoothDevice?, registered: Boolean) {
+                super.onAppStatusChanged(pluggedDevice, registered)
+                isRegistering = false
+                isRegistered = registered
+                Log.d(TAG, "HID app registration status changed: $registered")
+
+                if (registered) {
+                    registrationRetryCount = 0
+                    updateNotification(getString(R.string.notification_waiting))
+                    onRegistrationStateChanged?.invoke(true)
+                } else {
+                    scheduleRegistrationRetry()
+                }
+            }
+
             override fun onConnectionStateChanged(device: BluetoothDevice?, state: Int) {
                 super.onConnectionStateChanged(device, state)
                 when (state) {
@@ -249,16 +263,20 @@ class BluetoothHidService : Service() {
                         userInitiatedDisconnect = false
                         lastConnectedDeviceAddress = device?.address
                         Log.d(TAG, "Connected to: ${device?.name}")
+
+                        // Create KeyboardSender for the connected device
+                        keyboardSender = KeyboardSender(hidDevice, device!!)
+
                         // Set connection policy to allow auto-reconnect (API 33+)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                             try {
-                                val method = hidDevice?.javaClass?.getMethod(
+                                val method = hidDevice.javaClass.getMethod(
                                     "setConnectionPolicy",
                                     BluetoothDevice::class.java,
                                     Int::class.javaPrimitiveType
                                 )
                                 // CONNECTION_POLICY_ALLOWED = 1
-                                method?.invoke(hidDevice, device, 1)
+                                method.invoke(hidDevice, device, 1)
                             } catch (e: Exception) {
                                 Log.w(TAG, "Failed to set connection policy: ${e.message}")
                             }
@@ -269,13 +287,12 @@ class BluetoothHidService : Service() {
                     BluetoothProfile.STATE_DISCONNECTED -> {
                         connectedDevice = null
                         isConnected = false
-                        isRegistered = false
+                        keyboardSender = null
                         Log.d(TAG, "Disconnected")
                         updateNotification(getString(R.string.notification_waiting))
                         onConnectionStateChanged?.invoke(false, null)
-                        // Cancel any pending reconnect callbacks first
-                        mainHandler.removeCallbacksAndMessages(null)
-                        // Auto-reconnect only if not user-initiated
+                        setDiscoverable()
+                        // Auto-connect only if not user-initiated
                         if (!userInitiatedDisconnect) {
                             scheduleReconnect()
                         }
@@ -287,77 +304,101 @@ class BluetoothHidService : Service() {
             override fun onGetReport(device: BluetoothDevice, type: Byte, id: Byte, bufferSize: Int) {
                 super.onGetReport(device, type, id, bufferSize)
                 // Host is requesting current key state — reply with all-zeros (no keys pressed)
-                if (id.toInt() == HID_REPORT_ID.toInt()) {
-                    try {
-                        val method = hidDevice?.javaClass?.getMethod(
-                            "sendReply",
-                            BluetoothDevice::class.java,
-                            Byte::class.javaPrimitiveType,
-                            Byte::class.javaPrimitiveType,
-                            ByteArray::class.java
-                        )
-                        method?.invoke(hidDevice, device, type, id, ByteArray(8))
-                    } catch (e: Exception) {
-                        Log.w(TAG, "Failed to send GET_REPORT reply: ${e.message}")
-                    }
+                try {
+                    val method = hidDevice.javaClass.getMethod(
+                        "sendReply",
+                        BluetoothDevice::class.java,
+                        Byte::class.javaPrimitiveType,
+                        Byte::class.javaPrimitiveType,
+                        ByteArray::class.java
+                    )
+                    method.invoke(hidDevice, device, type, id, ByteArray(8))
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to send GET_REPORT reply: ${e.message}")
                 }
             }
-        })
+        }
 
-        // registerApp() is async — mark as registered now.
-        // If it fails internally, the SDP record won't exist and no host
-        // will connect, so the user sees "Waiting" (correct feedback).
-        isRegistered = true
-        Log.d(TAG, "HID device registered, waiting for host connection")
-        updateNotification(getString(R.string.notification_waiting))
-        onRegistrationStateChanged?.invoke(true)
+        isRegistering = true
+        val registerStarted = hidDevice.registerApp(sdpSettings, null, null, executor, callback)
+        Log.d(TAG, "HID app registration started: $registerStarted")
+        if (!registerStarted) {
+            isRegistering = false
+            scheduleRegistrationRetry()
+        }
     }
 
     /**
-     * Schedule a reconnection attempt after disconnect.
-     * Unregisters and re-registers the SDP record, then waits for the host
-     * to discover and connect (or proactively connects on API 33+).
+     * Make the device discoverable via hidden API setScanMode.
+     * Ported from Kontroller's Unhide.kt pattern.
+     * SCAN_MODE_CONNECTABLE_DISCOVERABLE = 23, duration 300 seconds.
+     */
+    private fun setDiscoverable() {
+        try {
+            val method = bluetoothAdapter?.javaClass?.getMethod(
+                "setScanMode",
+                Int::class.javaPrimitiveType,
+                Int::class.javaPrimitiveType
+            )
+            val result = method?.invoke(bluetoothAdapter, 23, 300)
+            Log.d(TAG, "setScanMode result: $result")
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to set discoverable mode: ${e.message}")
+        }
+    }
+
+    private fun scheduleRegistrationRetry() {
+        val adapter = bluetoothAdapter ?: return
+        if (isShuttingDown || !adapter.isEnabled || hidDevice == null || isRegistered || isRegistering) return
+        if (registrationRetryCount >= MAX_REGISTRATION_RETRIES) {
+            Log.w(TAG, "HID app registration failed after retries")
+            onRegistrationStateChanged?.invoke(false)
+            return
+        }
+
+        registrationRetryCount++
+        Log.d(TAG, "Retrying HID app registration ($registrationRetryCount/$MAX_REGISTRATION_RETRIES)")
+        mainHandler.postDelayed({
+            registerHidDevice()
+        }, 1000L * registrationRetryCount)
+    }
+
+    /**
+     * Schedule a proactive reconnection attempt after unexpected disconnect.
      */
     private fun scheduleReconnect() {
         val address = lastConnectedDeviceAddress ?: return
         Log.d(TAG, "Scheduling reconnect to $address")
 
+        // Give the Bluetooth stack a moment to settle before trying to connect.
         mainHandler.postDelayed({
             val hd = hidDevice ?: return@postDelayed
-            if (isConnected || isRegistered || userInitiatedDisconnect) return@postDelayed
+            if (isConnected || userInitiatedDisconnect) return@postDelayed
 
-            Log.d(TAG, "Re-registering HID SDP for reconnect")
-            registerHidDevice()
-
-            // After re-registering, give SDP time to propagate, then try connect
-            mainHandler.postDelayed({
-                tryConnectToLastDevice()
-            }, 1500)
-        }, 1000)
+            tryConnectToLastDevice()
+        }, 2500)
     }
 
     /**
      * Proactively connect to the last known device.
-     * Only works on API 33+ where BluetoothHidDevice.connect() is available.
-     * For older API levels, the host must initiate the connection.
      */
-    private fun tryConnectToLastDevice() {
-        val address = lastConnectedDeviceAddress ?: return
-        val hd = hidDevice ?: return
-        val adapter = bluetoothAdapter ?: return
-        if (isConnected) return
+    private fun tryConnectToLastDevice(): Boolean {
+        val address = lastConnectedDeviceAddress ?: return false
+        val hd = hidDevice ?: return false
+        val adapter = bluetoothAdapter ?: return false
+        if (isConnected) return true
         if (!isRegistered) {
             Log.w(TAG, "Cannot connect: HID not registered yet")
-            return
+            return false
         }
 
         val now = System.currentTimeMillis()
-        if (now - lastReconnectAttempt < 2000) return
+        if (now - lastReconnectAttempt < 2000) return false
         lastReconnectAttempt = now
 
         val device = adapter.bondedDevices?.find { it.address == address } ?: run {
             Log.w(TAG, "Last device ($address) not found in bonded devices")
-            return
+            return false
         }
         Log.d(TAG, "Attempting HID connect to ${device.name} ($address)")
         val result = try {
@@ -370,6 +411,7 @@ class BluetoothHidService : Service() {
         if (!result) {
             Log.d(TAG, "Phone-initiated connect failed — the host must discover and connect to this device")
         }
+        return result
     }
 
     /**
@@ -386,59 +428,6 @@ class BluetoothHidService : Service() {
     }
 
     /**
-     * Send a HID report to the connected device.
-     */
-    fun sendReport(report: ByteArray): Boolean {
-        if (!isConnected || connectedDevice == null) {
-            Log.w(TAG, "Not connected, cannot send report")
-            return false
-        }
-
-        return try {
-            val result = hidDevice?.sendReport(connectedDevice, HID_REPORT_ID.toInt(), report) ?: false
-            if (!result) {
-                Log.w(TAG, "sendReport returned false, report was rejected")
-            }
-            result
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to send report: ${e.message}")
-            false
-        }
-    }
-
-    /**
-     * Send a key press and release.
-     */
-    fun sendKeyPress(modifier: Byte, keyCode: Byte, delayMs: Long = 20) {
-        val report = HidReportHelper.buildReport(modifier, keyCode)
-        if (sendReport(report)) {
-            Thread.sleep(delayMs)
-            sendReport(HidReportHelper.buildReleaseReport())
-        }
-    }
-
-    /**
-     * Send a string as key presses.
-     */
-    fun sendText(text: String, delayMs: Long = 30) {
-        for (char in text) {
-            val hidCode = HidReportHelper.charToHidCode(char)
-            if (hidCode != null) {
-                sendKeyPress(hidCode.first, hidCode.second)
-                Thread.sleep(delayMs)
-            }
-        }
-    }
-
-    /**
-     * Send a macro command.
-     */
-    fun sendMacro(command: String) {
-        sendText(command)
-        sendKeyPress(0x00, HidReportHelper.KEY_ENTER)
-    }
-
-    /**
      * Check if the device is currently connected.
      */
     fun isConnected(): Boolean = isConnected
@@ -447,6 +436,11 @@ class BluetoothHidService : Service() {
      * Check if the HID device is registered.
      */
     fun isRegistered(): Boolean = isRegistered
+
+    /**
+     * Check if there is a previous host to reconnect to.
+     */
+    fun hasLastConnectedDevice(): Boolean = lastConnectedDeviceAddress != null
 
     /**
      * Get the name of the connected device.
@@ -461,6 +455,17 @@ class BluetoothHidService : Service() {
         connectedDevice?.let { device ->
             hidDevice?.disconnect(device)
         }
+        setDiscoverable()
+    }
+
+    /**
+     * Connect to the last paired host from the app instead of relying on system Bluetooth UI.
+     */
+    fun connectToLastDevice(): Boolean {
+        userInitiatedDisconnect = false
+        lastReconnectAttempt = 0
+        setDiscoverable()
+        return tryConnectToLastDevice()
     }
 
     /**

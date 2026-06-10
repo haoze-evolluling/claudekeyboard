@@ -1,6 +1,5 @@
 package com.haoze.claudekeyboard
 
-import android.bluetooth.BluetoothAdapter
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -24,8 +23,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.haoze.claudekeyboard.bluetooth.BluetoothHidService
-import com.haoze.claudekeyboard.bluetooth.BluetoothPermissionHelper
-import com.haoze.claudekeyboard.bluetooth.HidReportHelper
+import com.haoze.claudekeyboard.bluetooth.KeyboardSender
 import com.haoze.claudekeyboard.macro.Macro
 import com.haoze.claudekeyboard.macro.MacroRepository
 import com.haoze.claudekeyboard.ui.macro.MacroButtonAdapter
@@ -76,8 +74,6 @@ class MainActivity : AppCompatActivity() {
         setupCoreButtons()
         setupMacroRecyclerView()
         setupTextInput()
-        checkBluetoothSupport()
-        requestBluetoothPermissions()
         startAndBindHidService()
     }
 
@@ -121,36 +117,43 @@ class MainActivity : AppCompatActivity() {
         inputText = findViewById(R.id.et_input_text)
         macroRecyclerView = findViewById(R.id.rv_macros)
 
-        btnDisconnect.setOnClickListener { hidService?.disconnect() }
+        btnDisconnect.setOnClickListener {
+            val service = hidService ?: return@setOnClickListener
+            if (service.isConnected()) {
+                service.disconnect()
+            } else if (!service.connectToLastDevice()) {
+                Toast.makeText(this, R.string.toast_connect_failed, Toast.LENGTH_SHORT).show()
+            }
+        }
         btnSettings.setOnClickListener { showSettingsDialog() }
     }
 
     private fun setupCoreButtons() {
         btnYes.setOnClickListener {
-            hidService?.let { s -> Thread { s.sendText("y"); s.sendKeyPress(0x00, HidReportHelper.KEY_ENTER) }.start() }
+            hidService?.getKeyboardSender()?.let { s -> Thread { s.sendText("y"); s.sendKeyPress(0x00, KeyboardSender.KEY_ENTER) }.start() }
         }
         btnNo.setOnClickListener {
-            hidService?.let { s -> Thread { s.sendText("n"); s.sendKeyPress(0x00, HidReportHelper.KEY_ENTER) }.start() }
+            hidService?.getKeyboardSender()?.let { s -> Thread { s.sendText("n"); s.sendKeyPress(0x00, KeyboardSender.KEY_ENTER) }.start() }
         }
         btnCtrlC.setOnClickListener {
-            hidService?.let { s -> Thread { s.sendKeyPress(HidReportHelper.MODIFIER_CTRL_LEFT, HidReportHelper.KEY_C) }.start() }
+            hidService?.getKeyboardSender()?.let { s -> Thread { s.sendKeyPress(KeyboardSender.MODIFIER_CTRL_LEFT, KeyboardSender.KEY_C) }.start() }
         }
         btnYesToAll.setOnClickListener {
-            hidService?.let { s -> Thread { s.sendText("y!"); s.sendKeyPress(0x00, HidReportHelper.KEY_ENTER) }.start() }
+            hidService?.getKeyboardSender()?.let { s -> Thread { s.sendText("y!"); s.sendKeyPress(0x00, KeyboardSender.KEY_ENTER) }.start() }
         }
     }
 
     private fun setupMacroRecyclerView() {
         macroAdapter = MacroButtonAdapter(
             onMacroClick = { macro ->
-                hidService?.let { s -> Thread { s.sendMacro(macro.command) }.start() }
+                hidService?.getKeyboardSender()?.let { s -> Thread { s.sendMacro(macro.command) }.start() }
             },
             onMacroLongClick = { macro ->
                 if (!macro.isPreset) showEditMacroDialog(macro)
             }
         )
         macroRecyclerView.apply {
-            layoutManager = GridLayoutManager(this@MainActivity, 3)
+            layoutManager = GridLayoutManager(this@MainActivity, 2)
             adapter = macroAdapter
         }
         loadMacros()
@@ -172,32 +175,8 @@ class MainActivity : AppCompatActivity() {
     private fun sendInputText() {
         val text = inputText.text.toString()
         if (text.isNotEmpty()) {
-            hidService?.let { s -> Thread { s.sendText(text); s.sendKeyPress(0x00, HidReportHelper.KEY_ENTER) }.start() }
+            hidService?.getKeyboardSender()?.let { s -> Thread { s.sendText(text); s.sendKeyPress(0x00, KeyboardSender.KEY_ENTER) }.start() }
             inputText.text?.clear()
-        }
-    }
-
-    private fun checkBluetoothSupport() {
-        if (!BluetoothPermissionHelper.isBleHidSupported(this)) {
-            updateStatusUI(false, getString(R.string.status_not_supported))
-            disableAllButtons()
-            Toast.makeText(this, R.string.toast_bluetooth_not_supported, Toast.LENGTH_LONG).show()
-        }
-    }
-
-    private fun requestBluetoothPermissions() {
-        if (!BluetoothPermissionHelper.hasRequiredPermissions(this)) {
-            BluetoothPermissionHelper.requestPermissions(this)
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == BluetoothPermissionHelper.REQUEST_CODE_BLUETOOTH_PERMISSIONS) {
-            if (!BluetoothPermissionHelper.onRequestPermissionsResult(requestCode, permissions, grantResults)) {
-                Toast.makeText(this, R.string.toast_permission_denied, Toast.LENGTH_SHORT).show()
-                updateStatusUI(false, getString(R.string.status_disconnected))
-            }
         }
     }
 
@@ -222,13 +201,15 @@ class MainActivity : AppCompatActivity() {
             statusChip.text = getString(R.string.status_connected, deviceName ?: getString(R.string.status_unknown_device))
             statusChip.setChipBackgroundColorResource(R.color.status_connected_bg)
             statusChip.setTextColor(ContextCompat.getColor(this, R.color.status_connected))
+            btnDisconnect.text = getString(R.string.settings_disconnect)
             btnDisconnect.visibility = View.VISIBLE
             enableAllButtons()
         } else {
             statusChip.text = getString(R.string.status_waiting)
             statusChip.setChipBackgroundColorResource(R.color.chip_bg)
             statusChip.setTextColor(ContextCompat.getColor(this, R.color.chip_text))
-            btnDisconnect.visibility = View.GONE
+            btnDisconnect.text = getString(R.string.btn_connect)
+            btnDisconnect.visibility = if (hidService?.hasLastConnectedDevice() == true) View.VISIBLE else View.GONE
             disableAllButtons()
         }
     }

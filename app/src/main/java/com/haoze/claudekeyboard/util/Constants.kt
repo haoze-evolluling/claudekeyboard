@@ -5,10 +5,6 @@ package com.haoze.claudekeyboard.util
  */
 object Constants {
 
-    // HID Report constants
-    const val HID_REPORT_SIZE = 8
-    const val HID_REPORT_ID = 0x01
-
     // Timing constants (milliseconds)
     const val KEY_PRESS_DELAY = 20L
     const val KEY_TYPING_DELAY = 30L
@@ -29,13 +25,6 @@ object Constants {
     // Request codes
     const val REQUEST_CODE_BLUETOOTH_PERMISSIONS = 1001
     const val REQUEST_CODE_ENABLE_BLUETOOTH = 1002
-
-    // HID Device constants
-    const val HID_DEVICE_NAME = "Claude Code Keyboard"
-    const val HID_DESCRIPTION = "Claude Code Bluetooth HID Keyboard"
-    const val HID_PROVIDER = "Claude Code"
-    const val HID_SUBCLASS = 0x40 // Keyboard
-    const val HID_PROTOCOL = 0x01 // Keyboard
 
     // Connection states
     const val STATE_DISCONNECTED = 0
