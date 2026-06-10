@@ -1,25 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.button.MaterialButton xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/btn_macro"
+    style="@style/Widget.Material3.Button.OutlinedButton"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="64dp"
     android:layout_margin="4dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="1dp"
-    app:cardBackgroundColor="@color/surface_card"
-    app:strokeWidth="1dp"
-    app:strokeColor="@color/outline">
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_macro"
-        style="@style/Widget.MaterialComponents.Button.TextButton"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:gravity="center"
-        android:maxLines="2"
-        android:padding="8dp"
-        android:textAllCaps="false"
-        android:textColor="@color/on_surface"
-        android:textSize="14sp" />
-
-</com.google.android.material.card.MaterialCardView>
+    android:gravity="center"
+    android:maxLines="2"
+    android:padding="8dp"
+    android:textAllCaps="false"
+    android:textAppearance="?attr/textAppearanceBodyMedium"
+    android:textColor="?attr/colorOnSurface"
+    app:cornerRadius="12dp"
+    app:strokeColor="?attr/colorOutline"
+    app:strokeWidth="1dp" />
