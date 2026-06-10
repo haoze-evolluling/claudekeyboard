@@ -24,6 +24,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text="@string/app_name"
             android:textColor="@color/on_surface"
             android:textSize="18sp"
@@ -34,6 +36,7 @@
             style="@style/Widget.MaterialComponents.Chip.Action"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:text="@string/status_waiting"
             android:textColor="@color/chip_text"
             android:textSize="12sp"
@@ -59,7 +62,7 @@
             android:layout_marginStart="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/settings_title"
-            android:src="@android:drawable/ic_menu_manage"
+            android:src="@drawable/ic_settings"
             app:tint="@color/on_surface" />
     </LinearLayout>
 

@@ -205,7 +205,12 @@ class MainActivity : AppCompatActivity() {
             btnDisconnect.visibility = View.VISIBLE
             enableAllButtons()
         } else {
-            statusChip.text = getString(R.string.status_waiting)
+            val lastName = hidService?.getLastConnectedDeviceName()
+            if (lastName != null) {
+                statusChip.text = getString(R.string.status_last_device, lastName)
+            } else {
+                statusChip.text = getString(R.string.status_waiting)
+            }
             statusChip.setChipBackgroundColorResource(R.color.chip_bg)
             statusChip.setTextColor(ContextCompat.getColor(this, R.color.chip_text))
             btnDisconnect.text = getString(R.string.btn_connect)

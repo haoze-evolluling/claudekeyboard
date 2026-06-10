@@ -14,6 +14,7 @@
     <!-- Status messages -->
     <string name="status_waiting">等待配对…</string>
     <string name="status_connected">已连接: %s</string>
+    <string name="status_last_device">上次: %s</string>
     <string name="status_disconnected">未连接</string>
     <string name="status_bluetooth_off">蓝牙已关闭</string>
     <string name="status_not_supported">此设备不支持蓝牙HID</string>

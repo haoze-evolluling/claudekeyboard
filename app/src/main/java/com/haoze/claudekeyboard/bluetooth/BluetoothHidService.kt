@@ -23,6 +23,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.haoze.claudekeyboard.MainActivity
 import com.haoze.claudekeyboard.R
+import android.content.SharedPreferences
 import java.util.concurrent.Executors
 
 /**
@@ -36,6 +37,9 @@ class BluetoothHidService : Service() {
         private const val NOTIFICATION_CHANNEL_ID = "bluetooth_hid_channel"
         private const val NOTIFICATION_ID = 1001
         private const val MAX_REGISTRATION_RETRIES = 3
+        private const val PREFS_NAME = "bluetooth_prefs"
+        private const val KEY_LAST_DEVICE_ADDRESS = "last_device_address"
+        private const val KEY_LAST_DEVICE_NAME = "last_device_name"
     }
 
     // Binder given to clients
@@ -63,7 +67,12 @@ class BluetoothHidService : Service() {
 
     // Last connected device address (for auto-reconnect)
     private var lastConnectedDeviceAddress: String? = null
+    private var lastConnectedDeviceName: String? = null
     private var lastReconnectAttempt: Long = 0
+
+    private val prefs: SharedPreferences by lazy {
+        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
 
     // Main thread handler for scheduling reconnection
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -133,6 +142,11 @@ class BluetoothHidService : Service() {
             stopSelf()
             return
         }
+
+        // Restore last connected device from persistent storage
+        lastConnectedDeviceAddress = prefs.getString(KEY_LAST_DEVICE_ADDRESS, null)
+        lastConnectedDeviceName = prefs.getString(KEY_LAST_DEVICE_NAME, null)
+        Log.d(TAG, "Restored last device: $lastConnectedDeviceName ($lastConnectedDeviceAddress)")
 
         // Register Bluetooth state receiver
         val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
@@ -262,6 +276,12 @@ class BluetoothHidService : Service() {
                         isConnected = true
                         userInitiatedDisconnect = false
                         lastConnectedDeviceAddress = device?.address
+                        lastConnectedDeviceName = device?.name
+                        // Persist last connected device for reconnect after app kill
+                        prefs.edit()
+                            .putString(KEY_LAST_DEVICE_ADDRESS, device?.address)
+                            .putString(KEY_LAST_DEVICE_NAME, device?.name)
+                            .apply()
                         Log.d(TAG, "Connected to: ${device?.name}")
 
                         // Create KeyboardSender for the connected device
@@ -446,6 +466,11 @@ class BluetoothHidService : Service() {
      * Get the name of the connected device.
      */
     fun getConnectedDeviceName(): String? = connectedDevice?.name
+
+    /**
+     * Get the name of the last connected device (persisted).
+     */
+    fun getLastConnectedDeviceName(): String? = lastConnectedDeviceName
 
     /**
      * Disconnect from the current device.
