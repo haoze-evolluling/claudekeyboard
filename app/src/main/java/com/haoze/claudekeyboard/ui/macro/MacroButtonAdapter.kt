@@ -3,13 +3,12 @@ package com.haoze.claudekeyboard.ui.macro
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import com.haoze.claudekeyboard.R
 import com.haoze.claudekeyboard.macro.Macro
-import com.haoze.claudekeyboard.ui.theme.ThemeExtensions.applyMacroStyle
 
 /**
  * Adapter for displaying macro buttons in a RecyclerView.
@@ -31,11 +30,10 @@ class MacroButtonAdapter(
     }
 
     inner class MacroViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val button: Button = itemView.findViewById(R.id.btn_macro)
+        private val button: MaterialButton = itemView.findViewById(R.id.btn_macro)
 
         fun bind(macro: Macro) {
             button.text = macro.label
-            button.applyMacroStyle(itemView.context)
 
             button.setOnClickListener {
                 onMacroClick(macro)

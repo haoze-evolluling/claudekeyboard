@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
-import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.fragment.app.DialogFragment
 import com.haoze.claudekeyboard.R
 import com.haoze.claudekeyboard.macro.Macro
@@ -84,7 +84,7 @@ class MacroEditDialogFragment : DialogFragment() {
             etCommand.setText(macroCommand)
         }
 
-        val dialogBuilder = AlertDialog.Builder(requireContext())
+        val dialogBuilder = MaterialAlertDialogBuilder(requireContext())
             .setTitle(if (isEdit) R.string.dialog_edit_macro else R.string.dialog_add_macro)
             .setView(view)
             .setPositiveButton(R.string.dialog_save) { _, _ ->

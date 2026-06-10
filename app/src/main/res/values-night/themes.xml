@@ -1,22 +1,20 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Night theme - keep same light design for consistency -->
-    <style name="Base.Theme.Claudekeyboard" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Primary color: sky blue -->
-        <item name="colorPrimary">@color/sky_blue_accent</item>
-        <item name="colorPrimaryDark">@color/sky_blue_dark</item>
-        <item name="colorAccent">@color/sky_blue_accent</item>
 
-        <!-- Background: white (same as light) -->
-        <item name="android:colorBackground">@color/white</item>
-        <item name="android:windowBackground">@color/white</item>
-
-        <!-- Status bar: light sky blue -->
-        <item name="android:statusBarColor">@color/sky_blue_light</item>
-        <item name="android:navigationBarColor">@color/white</item>
-
-        <!-- Text colors: black -->
-        <item name="android:textColor">@color/black</item>
-        <item name="android:textColorPrimary">@color/black</item>
-        <item name="android:textColorSecondary">#666666</item>
+    <style name="Theme.Claudekeyboard" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorSecondaryVariant">@color/secondary_dark</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="android:colorBackground">@color/surface</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/on_surface</item>
+        <item name="colorError">@color/error</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="android:statusBarColor">@color/surface</item>
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
+
 </resources>

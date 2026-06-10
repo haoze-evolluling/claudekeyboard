@@ -23,6 +23,10 @@ object BluetoothPermissionHelper {
             ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.BLUETOOTH_CONNECT
+            ) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.BLUETOOTH_ADVERTISE
             ) == PackageManager.PERMISSION_GRANTED
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ContextCompat.checkSelfPermission(
@@ -58,6 +62,7 @@ object BluetoothPermissionHelper {
         when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
                 permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
+                permissions.add(Manifest.permission.BLUETOOTH_ADVERTISE)
             }
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
                 permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -89,7 +94,7 @@ object BluetoothPermissionHelper {
      * Check if the device supports Bluetooth HID.
      */
     fun isBleHidSupported(context: Context): Boolean {
-        return context.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
+        return context.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)
     }
 
     /**

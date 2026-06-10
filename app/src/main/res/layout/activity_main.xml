@@ -5,218 +5,230 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/surface"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <!-- Status Bar -->
+    <!-- Top Bar -->
     <LinearLayout
-        android:id="@+id/status_bar"
+        android:id="@+id/top_bar"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/status_bar_height"
-        android:background="@color/background_status_bar"
+        android:layout_height="56dp"
+        android:background="@color/surface"
+        android:elevation="2dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="@dimen/status_bar_padding">
-
-        <ImageView
-            android:id="@+id/status_icon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/ic_dialog_info"
-            android:contentDescription="Status icon" />
+        android:paddingHorizontal="16dp">
 
         <TextView
-            android:id="@+id/status_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            android:text="@string/status_waiting"
-            android:textColor="@color/black"
-            android:textSize="@dimen/status_text_size" />
+            android:text="@string/app_name"
+            android:textColor="@color/on_surface"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-        <Button
+        <com.google.android.material.chip.Chip
+            android:id="@+id/status_chip"
+            style="@style/Widget.MaterialComponents.Chip.Action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/status_waiting"
+            android:textColor="@color/chip_text"
+            android:textSize="12sp"
+            app:chipBackgroundColor="@color/chip_bg"
+            app:chipIcon="@android:drawable/ic_dialog_info"
+            app:chipIconTint="@color/chip_text"
+            app:chipMinHeight="32dp" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_disconnect"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/settings_disconnect"
+            android:textColor="@color/primary"
             android:textSize="12sp"
-            android:textColor="@color/black"
-            android:backgroundTint="@color/sky_blue_light"
             android:visibility="gone" />
 
-        <Button
+        <ImageButton
             android:id="@+id/btn_settings"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="⚙"
-            android:textSize="18sp"
-            android:textColor="@color/black"
-            android:backgroundTint="@color/sky_blue_light"
-            android:layout_marginStart="8dp" />
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/settings_title"
+            android:src="@android:drawable/ic_menu_manage"
+            app:tint="@color/on_surface" />
     </LinearLayout>
 
-    <!-- Black divider line -->
+    <!-- Divider -->
     <View
         android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="@color/divider_black" />
+        android:layout_height="1dp"
+        android:background="@color/divider" />
 
-    <!-- Main Content Area -->
+    <!-- Main Content -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="horizontal"
-        android:padding="@dimen/section_padding">
+        android:padding="8dp">
 
-        <!-- Core Buttons Area (Left) -->
+        <!-- Left: Core Buttons -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="4"
-            android:orientation="vertical"
             android:gravity="center"
-            android:padding="@dimen/button_padding">
+            android:orientation="vertical"
+            android:padding="4dp">
 
-            <!-- Row 1: Yes and Yes to All -->
+            <!-- Row 1: Yes / Yes to All -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginBottom="@dimen/core_button_margin">
+                android:orientation="horizontal"
+                android:layout_marginBottom="6dp">
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_yes"
+                    style="@style/Widget.MaterialComponents.Button"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:layout_marginEnd="@dimen/core_button_margin"
+                    android:layout_marginEnd="6dp"
+                    android:gravity="center"
+                    android:maxLines="2"
                     android:text="@string/btn_yes"
-                    android:textSize="@dimen/core_button_text_size"
-                    android:background="@drawable/btn_yes"
-                    android:textColor="@color/btn_text"
-                    android:padding="4dp"
-                    android:maxLines="2"
-                    android:gravity="center" />
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    app:backgroundTint="@color/primary"
+                    app:cornerRadius="12dp" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_yes_to_all"
+                    style="@style/Widget.MaterialComponents.Button"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:text="@string/btn_yes_to_all"
-                    android:textSize="@dimen/core_button_text_size"
-                    android:background="@drawable/btn_yes_to_all"
-                    android:textColor="@color/btn_text"
-                    android:padding="4dp"
+                    android:gravity="center"
                     android:maxLines="2"
-                    android:gravity="center" />
+                    android:text="@string/btn_yes_to_all"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    app:backgroundTint="@color/primary_light"
+                    app:cornerRadius="12dp" />
             </LinearLayout>
 
-            <!-- Row 2: No and Ctrl+C -->
+            <!-- Row 2: No / Ctrl+C -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:orientation="horizontal"
-                android:gravity="center">
+                android:gravity="center"
+                android:orientation="horizontal">
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_no"
+                    style="@style/Widget.MaterialComponents.Button"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:layout_marginEnd="@dimen/core_button_margin"
+                    android:layout_marginEnd="6dp"
+                    android:gravity="center"
+                    android:maxLines="2"
                     android:text="@string/btn_no"
-                    android:textSize="@dimen/core_button_text_size"
-                    android:background="@drawable/btn_no"
-                    android:textColor="@color/btn_text"
-                    android:padding="4dp"
-                    android:maxLines="2"
-                    android:gravity="center" />
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    app:backgroundTint="@color/secondary"
+                    app:cornerRadius="12dp" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_ctrl_c"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:text="@string/btn_ctrl_c"
-                    android:textSize="@dimen/core_button_text_size"
-                    android:background="@drawable/btn_ctrl_c"
-                    android:textColor="@color/btn_text"
-                    android:padding="4dp"
+                    android:gravity="center"
                     android:maxLines="2"
-                    android:gravity="center" />
+                    android:text="@string/btn_ctrl_c"
+                    android:textColor="@color/primary"
+                    android:textSize="16sp"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="@color/primary"
+                    app:strokeWidth="2dp" />
             </LinearLayout>
+
         </LinearLayout>
 
-        <!-- Black vertical divider -->
+        <!-- Vertical divider -->
         <View
-            android:layout_width="2dp"
+            android:layout_width="1dp"
             android:layout_height="match_parent"
-            android:background="@color/divider_black" />
+            android:background="@color/divider" />
 
-        <!-- Macro Buttons Area (Right) -->
+        <!-- Right: Input + Macros -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="6"
             android:orientation="vertical"
-            android:paddingStart="@dimen/section_padding">
+            android:paddingStart="8dp">
 
-            <!-- Text Input Area -->
-            <LinearLayout
+            <!-- Text Input -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_input"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="@dimen/core_button_margin">
+                android:layout_marginBottom="8dp"
+                android:hint="@string/hint_input_text"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusTopStart="12dp"
+                app:endIconMode="custom"
+                app:endIconDrawable="@android:drawable/ic_menu_send"
+                app:endIconTint="@color/primary"
+                app:boxStrokeColor="@color/primary">
 
-                <EditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_input_text"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:hint="@string/hint_input_text"
-                    android:textColor="@color/black"
-                    android:textColorHint="#999999"
-                    android:textSize="16sp"
-                    android:background="@drawable/btn_floating"
-                    android:paddingHorizontal="12dp"
-                    android:singleLine="true"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:imeOptions="actionSend"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:textColor="@color/on_surface"
+                    android:textColorHint="@color/on_surface_secondary"
                     android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 !@#$%^&amp;*()-=[]\;',./`~{}|:&quot;&lt;&gt;?_" />
 
-                <Button
-                    android:id="@+id/btn_send"
-                    android:layout_width="wrap_content"
-                    android:layout_height="48dp"
-                    android:layout_marginStart="8dp"
-                    android:text="@string/btn_send"
-                    android:textSize="16sp"
-                    android:background="@drawable/btn_ctrl_c"
-                    android:textColor="@color/btn_text"
-                    android:paddingHorizontal="16dp" />
-            </LinearLayout>
+            </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Black horizontal divider -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_marginBottom="8dp"
-                android:background="@color/divider_black" />
+            <!-- Macro list header -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/macro_list_title"
+                android:textColor="@color/on_surface_secondary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp"
+                android:layout_marginStart="4dp" />
 
+            <!-- Macros RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_macros"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:clipToPadding="false"
-                android:padding="@dimen/macro_button_margin" />
+                android:padding="4dp" />
 
         </LinearLayout>
     </LinearLayout>

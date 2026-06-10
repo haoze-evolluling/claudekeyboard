@@ -1,52 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Basic -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Primary theme colors: white + sky blue -->
-    <color name="sky_blue">#87CEEB</color>
-    <color name="sky_blue_light">#B3E5FC</color>
-    <color name="sky_blue_dark">#4FC3F7</color>
-    <color name="sky_blue_accent">#03A9F4</color>
+    <!-- Theme colors -->
+    <color name="primary">#1565C0</color>
+    <color name="primary_dark">#0D47A1</color>
+    <color name="primary_light">#42A5F5</color>
+    <color name="primary_container">#D1E4FF</color>
 
-    <!-- Button colors - all sky blue variants -->
-    <color name="btn_yes">#4FC3F7</color>
-    <color name="btn_no">#87CEEB</color>
-    <color name="btn_ctrl_c">#B3E5FC</color>
-    <color name="btn_yes_to_all">#81D4FA</color>
-    <color name="btn_macro">#E1F5FE</color>
-    <color name="btn_macro_border">#000000</color>
-    <color name="btn_floating">#87CEEB</color>
+    <color name="secondary">#546E7A</color>
+    <color name="secondary_dark">#37474F</color>
+    <color name="secondary_light">#78909C</color>
+    <color name="secondary_container">#CFD8DC</color>
 
-    <!-- Button border colors - black -->
-    <color name="btn_border">#000000</color>
-    <color name="btn_yes_border">#000000</color>
-    <color name="btn_no_border">#000000</color>
-    <color name="btn_ctrl_c_border">#000000</color>
-    <color name="btn_yes_to_all_border">#000000</color>
+    <color name="surface">#FAFAFA</color>
+    <color name="surface_card">#FFFFFF</color>
+    <color name="on_surface">#212121</color>
+    <color name="on_surface_secondary">#757575</color>
 
-    <!-- Text colors -->
-    <color name="btn_text">#000000</color>
-    <color name="btn_macro_text">#000000</color>
+    <color name="outline">#BDBDBD</color>
+    <color name="divider">#E0E0E0</color>
 
-    <!-- Background colors - white theme -->
-    <color name="background_dark">#FFFFFF</color>
-    <color name="background_status_bar">#E3F2FD</color>
-    <color name="background_keyboard">#FFFFFF</color>
-
-    <!-- Section divider color -->
-    <color name="divider_black">#000000</color>
+    <color name="error">#D32F2F</color>
 
     <!-- Status colors -->
-    <color name="status_connected">#2196F3</color>
-    <color name="status_disconnected">#F44336</color>
-    <color name="status_waiting">#FF9800</color>
+    <color name="status_connected">#2E7D32</color>
+    <color name="status_connected_bg">#E8F5E9</color>
+    <color name="status_disconnected">#C62828</color>
+    <color name="status_disconnected_bg">#FFEBEE</color>
+    <color name="status_waiting">#EF6C00</color>
+    <color name="status_waiting_bg">#FFF3E0</color>
 
-    <!-- Keyboard key colors -->
-    <color name="key_normal">#E3F2FD</color>
-    <color name="key_pressed">#B3E5FC</color>
-    <color name="key_modifier">#87CEEB</color>
-    <color name="key_modifier_pressed">#4FC3F7</color>
-    <color name="key_special">#B3E5FC</color>
-    <color name="key_text">#000000</color>
+    <!-- Chip colors -->
+    <color name="chip_bg">#E3F2FD</color>
+    <color name="chip_text">#1565C0</color>
 </resources>
