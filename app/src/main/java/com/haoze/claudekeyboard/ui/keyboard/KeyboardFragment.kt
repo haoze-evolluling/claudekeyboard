@@ -27,7 +27,8 @@ class KeyboardFragment : Fragment() {
     private var isShiftActive = false
     private var isCtrlActive = false
     private var isAltActive = false
-    private var isWinActive = false
+    private var isWinLeftActive = false   // Left Win: one-shot, sends standalone Win keypress
+    private var isWinRightActive = false  // Right Win: toggle only, for combos like Win+R
     private var isCapsLock = false
     private var isSymbolLock = false  // Right Shift: toggle symbol mode for number/punctuation keys
 
@@ -254,6 +255,7 @@ class KeyboardFragment : Fragment() {
                             MotionEvent.ACTION_UP -> {
                                 v.isPressed = false
                                 onKeyPressed(keyData, button)
+                                updateModifierVisuals()
                                 true
                             }
                             MotionEvent.ACTION_CANCEL -> {
@@ -427,6 +429,13 @@ class KeyboardFragment : Fragment() {
             updateModifierVisuals()
             updateAllKeyLabels()
         }
+
+        // Auto-release left Win after key press (one-shot behavior)
+        if (isWinLeftActive) {
+            isWinLeftActive = false
+            updateModifierVisuals()
+        }
+        // Right Win stays active until manually toggled off
     }
 
     /**
@@ -447,9 +456,9 @@ class KeyboardFragment : Fragment() {
                 isAltActive = !isAltActive
             }
             KeyboardSender.MODIFIER_GUI_LEFT -> {
-                isWinActive = !isWinActive
+                isWinLeftActive = !isWinLeftActive
                 // Left Win: send standalone Win keypress (opens Start menu)
-                if (isWinActive) {
+                if (isWinLeftActive) {
                     val sender = getKeyboardSender()
                     if (sender != null) {
                         Thread { sender.sendKeyPress(KeyboardSender.MODIFIER_GUI_LEFT, 0x00) }.start()
@@ -458,7 +467,7 @@ class KeyboardFragment : Fragment() {
             }
             KeyboardSender.MODIFIER_GUI_RIGHT -> {
                 // Right Win: toggle modifier only, no standalone keypress
-                isWinActive = !isWinActive
+                isWinRightActive = !isWinRightActive
             }
         }
         updateModifierVisuals()
@@ -483,7 +492,8 @@ class KeyboardFragment : Fragment() {
         if (isShiftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_SHIFT_LEFT.toInt()).toByte()
         if (isSymbolLock) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_SHIFT_LEFT.toInt()).toByte()
         if (isAltActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_ALT_LEFT.toInt()).toByte()
-        if (isWinActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_GUI_LEFT.toInt()).toByte()
+        if (isWinLeftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_GUI_LEFT.toInt()).toByte()
+        if (isWinRightActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_GUI_RIGHT.toInt()).toByte()
         return modifier
     }
 
@@ -533,14 +543,14 @@ class KeyboardFragment : Fragment() {
             it.setTextColor(if (isAltActive) activeTextColor else normalTextColor)
         }
 
-        // Win buttons
+        // Win buttons (independent)
         winLeftButton?.let {
-            it.setBackgroundResource(if (isWinActive) activeBg else normalBg)
-            it.setTextColor(if (isWinActive) activeTextColor else normalTextColor)
+            it.setBackgroundResource(if (isWinLeftActive) activeBg else normalBg)
+            it.setTextColor(if (isWinLeftActive) activeTextColor else normalTextColor)
         }
         winRightButton?.let {
-            it.setBackgroundResource(if (isWinActive) activeBg else normalBg)
-            it.setTextColor(if (isWinActive) activeTextColor else normalTextColor)
+            it.setBackgroundResource(if (isWinRightActive) activeBg else normalBg)
+            it.setTextColor(if (isWinRightActive) activeTextColor else normalTextColor)
         }
     }
 
