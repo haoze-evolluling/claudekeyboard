@@ -18,7 +18,7 @@ class MouseSender(
      * Send the current mouse report to the host.
      */
     fun sendMouseReport() {
-        if (!hidDevice.sendReport(host, MouseReport.ID, mouseReport.bytes)) {
+        if (!hidDevice.sendReport(host, MouseReport.ID, mouseReport.bytes.copyOfRange(1, mouseReport.bytes.size))) {
             Log.e(TAG, "Mouse report wasn't sent")
         }
     }

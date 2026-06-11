@@ -20,7 +20,7 @@ open class KeyboardSender(
      * Send the current keyboard report to the host.
      */
     protected open fun sendKeys() {
-        if (!hidDevice.sendReport(host, KeyboardReport.ID, keyboardReport.bytes)) {
+        if (!hidDevice.sendReport(host, KeyboardReport.ID, keyboardReport.bytes.copyOfRange(1, keyboardReport.bytes.size))) {
             Log.e(TAG, "Report wasn't sent")
         }
     }
@@ -29,8 +29,8 @@ open class KeyboardSender(
      * Send an all-zeros release report.
      */
     fun sendNullKeys() {
-        keyboardReport.bytes.fill(0)
-        if (!hidDevice.sendReport(host, KeyboardReport.ID, keyboardReport.bytes)) {
+        keyboardReport.reset()
+        if (!hidDevice.sendReport(host, KeyboardReport.ID, keyboardReport.bytes.copyOfRange(1, keyboardReport.bytes.size))) {
             Log.e(TAG, "Null report wasn't sent")
         }
     }
