@@ -429,12 +429,6 @@ class KeyboardFragment : Fragment() {
             updateModifierVisuals()
             updateAllKeyLabels()
         }
-
-        // Auto-release left Win after key press (one-shot behavior)
-        if (isWinLeftActive) {
-            isWinLeftActive = false
-            updateModifierVisuals()
-        }
         // Right Win stays active until manually toggled off
     }
 
@@ -456,13 +450,10 @@ class KeyboardFragment : Fragment() {
                 isAltActive = !isAltActive
             }
             KeyboardSender.MODIFIER_GUI_LEFT -> {
-                isWinLeftActive = !isWinLeftActive
-                // Left Win: send standalone Win keypress (opens Start menu)
-                if (isWinLeftActive) {
-                    val sender = getKeyboardSender()
-                    if (sender != null) {
-                        Thread { sender.sendKeyPress(KeyboardSender.MODIFIER_GUI_LEFT, 0x00) }.start()
-                    }
+                // Left Win: fire-and-forget, no persistent state
+                val sender = getKeyboardSender()
+                if (sender != null) {
+                    Thread { sender.sendKeyPress(KeyboardSender.MODIFIER_GUI_LEFT, 0x00) }.start()
                 }
             }
             KeyboardSender.MODIFIER_GUI_RIGHT -> {
