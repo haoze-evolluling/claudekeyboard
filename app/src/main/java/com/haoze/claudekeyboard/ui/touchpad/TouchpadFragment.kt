@@ -213,23 +213,21 @@ class TouchpadFragment : Fragment() {
                     val dx = currentX - lastTwoFingerX
                     val dy = currentY - lastTwoFingerY
 
-                    // Vertical scroll (inverted for natural scrolling: swipe up = scroll down)
-                    val vScrollAmount = (-dy * sensitivity / 50).toInt().coerceIn(-5, 5)
-                    if (vScrollAmount != 0) {
-                        getMouseSender()?.let { sender ->
-                            Thread { sender.sendMouseScroll(vScrollAmount) }.start()
-                        }
-                        lastTwoFingerY = currentY
-                        lastSendTime = now
-                    }
+                    // Vertical scroll (natural: swipe up = dy negative = scroll down)
+                    val vScrollAmount = (dy * sensitivity / 50).toInt().coerceIn(-5, 5)
 
-                    // Horizontal scroll
+                    // Horizontal scroll (natural: swipe right = dx positive = scroll right)
                     val hScrollAmount = (dx * sensitivity / 50).toInt().coerceIn(-5, 5)
-                    if (hScrollAmount != 0) {
+
+                    if (vScrollAmount != 0 || hScrollAmount != 0) {
                         getMouseSender()?.let { sender ->
-                            Thread { sender.sendMouseHScroll(hScrollAmount) }.start()
+                            Thread {
+                                if (vScrollAmount != 0) sender.sendMouseScroll(vScrollAmount)
+                                if (hScrollAmount != 0) sender.sendMouseHScroll(hScrollAmount)
+                            }.start()
                         }
                         lastTwoFingerX = currentX
+                        lastTwoFingerY = currentY
                         lastSendTime = now
                     }
                 } else if (!isScrollMode && pointerCount == 1) {
