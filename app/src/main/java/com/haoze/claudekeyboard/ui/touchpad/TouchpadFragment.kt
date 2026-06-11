@@ -5,6 +5,8 @@ import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -55,6 +57,17 @@ class TouchpadFragment : Fragment() {
 
     // Two-finger scroll tracking
     private var lastTwoFingerY = 0f
+
+    // Two-finger gesture state
+    private var isTwoFingerGesture = false
+    private var twoFingerStartTime = 0L
+    private var twoFingerStartX = floatArrayOf(0f, 0f)
+    private var twoFingerStartY = floatArrayOf(0f, 0f)
+
+    // Threshold constants
+    private val TWO_FINGER_TAP_TIMEOUT = 300L  // milliseconds
+    private val TWO_FINGER_TAP_MAX_DISTANCE = 50f  // pixels
+    private val SCROLL_THRESHOLD = 10f  // scroll threshold
 
     // SharedPreferences key
     private val PREFS_NAME = "touchpad_prefs"
@@ -165,6 +178,14 @@ class TouchpadFragment : Fragment() {
                     }
                     isScrollMode = true
                     lastTwoFingerY = (event.getY(0) + event.getY(1)) / 2f
+
+                    // Track two-finger gesture start
+                    isTwoFingerGesture = true
+                    twoFingerStartTime = SystemClock.uptimeMillis()
+                    twoFingerStartX[0] = event.getX(0)
+                    twoFingerStartY[0] = event.getY(0)
+                    twoFingerStartX[1] = event.getX(1)
+                    twoFingerStartY[1] = event.getY(1)
                 }
             }
 
@@ -227,6 +248,23 @@ class TouchpadFragment : Fragment() {
                 if (pointerCount == 2) {
                     // Exiting scroll mode
                     isScrollMode = false
+
+                    // Detect two-finger tap (right click)
+                    if (isTwoFingerGesture) {
+                        val duration = SystemClock.uptimeMillis() - twoFingerStartTime
+                        val dx = event.getX(0) - twoFingerStartX[0]
+                        val dy = event.getY(0) - twoFingerStartY[0]
+                        val distance = sqrt(dx * dx + dy * dy)
+
+                        if (duration < TWO_FINGER_TAP_TIMEOUT && distance < TWO_FINGER_TAP_MAX_DISTANCE) {
+                            // Two-finger tap detected - send right click
+                            getMouseSender()?.let { sender ->
+                                Thread { sender.sendMouseClick(MouseReport.BUTTON_RIGHT) }.start()
+                            }
+                            view?.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                        }
+                    }
+                    isTwoFingerGesture = false
                 }
             }
 
@@ -247,9 +285,11 @@ class TouchpadFragment : Fragment() {
                         getMouseSender()?.let { sender ->
                             Thread { sender.sendMouseClick(MouseReport.BUTTON_LEFT) }.start()
                         }
+                        view?.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                     }
                 }
                 isScrollMode = false
+                isTwoFingerGesture = false
             }
 
             MotionEvent.ACTION_CANCEL -> {
@@ -276,6 +316,12 @@ class TouchpadFragment : Fragment() {
                 sender.sendMouseReport()
             }.start()
         }
+    }
+
+    private fun calculateTwoFingerDistance(event: MotionEvent): Float {
+        val dx = event.getX(0) - event.getX(1)
+        val dy = event.getY(0) - event.getY(1)
+        return sqrt(dx * dx + dy * dy)
     }
 
     private fun loadSensitivity() {
