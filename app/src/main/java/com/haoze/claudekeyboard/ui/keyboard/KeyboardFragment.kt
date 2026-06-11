@@ -446,15 +446,19 @@ class KeyboardFragment : Fragment() {
             KeyboardSender.MODIFIER_ALT_LEFT, KeyboardSender.MODIFIER_ALT_RIGHT -> {
                 isAltActive = !isAltActive
             }
-            KeyboardSender.MODIFIER_GUI_LEFT, KeyboardSender.MODIFIER_GUI_RIGHT -> {
+            KeyboardSender.MODIFIER_GUI_LEFT -> {
                 isWinActive = !isWinActive
-                // Send standalone Win keypress when toggled on
+                // Left Win: send standalone Win keypress (opens Start menu)
                 if (isWinActive) {
                     val sender = getKeyboardSender()
                     if (sender != null) {
                         Thread { sender.sendKeyPress(KeyboardSender.MODIFIER_GUI_LEFT, 0x00) }.start()
                     }
                 }
+            }
+            KeyboardSender.MODIFIER_GUI_RIGHT -> {
+                // Right Win: toggle modifier only, no standalone keypress
+                isWinActive = !isWinActive
             }
         }
         updateModifierVisuals()
