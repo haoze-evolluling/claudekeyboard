@@ -56,6 +56,7 @@ class TouchpadFragment : Fragment() {
     private val tapMaxDuration = 200L  // ms
 
     // Two-finger scroll tracking
+    private var lastTwoFingerX = 0f
     private var lastTwoFingerY = 0f
 
     // Two-finger gesture state
@@ -177,6 +178,7 @@ class TouchpadFragment : Fragment() {
                         releaseDrag()
                     }
                     isScrollMode = true
+                    lastTwoFingerX = (event.getX(0) + event.getX(1)) / 2f
                     lastTwoFingerY = (event.getY(0) + event.getY(1)) / 2f
 
                     // Track two-finger gesture start
@@ -206,15 +208,28 @@ class TouchpadFragment : Fragment() {
 
                 if (isScrollMode && pointerCount >= 2) {
                     // Two-finger scroll
+                    val currentX = (event.getX(0) + event.getX(1)) / 2f
                     val currentY = (event.getY(0) + event.getY(1)) / 2f
-                    val dy = lastTwoFingerY - currentY
-                    val scrollAmount = (dy * sensitivity / 50).toInt().coerceIn(-5, 5)
+                    val dx = currentX - lastTwoFingerX
+                    val dy = currentY - lastTwoFingerY
 
-                    if (scrollAmount != 0) {
+                    // Vertical scroll (inverted for natural scrolling: swipe up = scroll down)
+                    val vScrollAmount = (-dy * sensitivity / 50).toInt().coerceIn(-5, 5)
+                    if (vScrollAmount != 0) {
                         getMouseSender()?.let { sender ->
-                            Thread { sender.sendMouseScroll(scrollAmount) }.start()
+                            Thread { sender.sendMouseScroll(vScrollAmount) }.start()
                         }
                         lastTwoFingerY = currentY
+                        lastSendTime = now
+                    }
+
+                    // Horizontal scroll
+                    val hScrollAmount = (dx * sensitivity / 50).toInt().coerceIn(-5, 5)
+                    if (hScrollAmount != 0) {
+                        getMouseSender()?.let { sender ->
+                            Thread { sender.sendMouseHScroll(hScrollAmount) }.start()
+                        }
+                        lastTwoFingerX = currentX
                         lastSendTime = now
                     }
                 } else if (!isScrollMode && pointerCount == 1) {
