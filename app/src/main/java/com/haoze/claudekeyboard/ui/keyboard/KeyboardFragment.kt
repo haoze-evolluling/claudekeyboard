@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment
 import com.haoze.claudekeyboard.MainActivity
 import com.haoze.claudekeyboard.R
 import com.haoze.claudekeyboard.bluetooth.KeyboardSender
+import com.haoze.claudekeyboard.util.performKeyClick
 
 /**
  * Full QWERTY keyboard fragment for Bluetooth HID input.
@@ -192,7 +193,10 @@ class KeyboardFragment : Fragment() {
             setBackgroundResource(R.drawable.bg_outline_button)
             isClickable = true
             isFocusable = false
-            setOnClickListener { (activity as? MainActivity)?.switchToClaudeTab() }
+            setOnClickListener {
+                it.performKeyClick()
+                (activity as? MainActivity)?.switchToClaudeTab()
+            }
         }
         val buttonWidth = resources.getDimensionPixelSize(R.dimen.keyboard_back_button_width)
         val params = LinearLayout.LayoutParams(
@@ -226,6 +230,7 @@ class KeyboardFragment : Fragment() {
                     button.setOnTouchListener { v, event ->
                         when (event.action) {
                             MotionEvent.ACTION_DOWN -> {
+                                v.performKeyClick()
                                 button.setBackgroundResource(R.drawable.bg_key_pressed)
                                 v.isPressed = true
                                 true
@@ -250,6 +255,7 @@ class KeyboardFragment : Fragment() {
                     button.setOnTouchListener { v, event ->
                         when (event.action) {
                             MotionEvent.ACTION_DOWN -> {
+                                v.performKeyClick()
                                 isKeyPressed = true
                                 button.setBackgroundResource(R.drawable.bg_key_pressed)
                                 v.isPressed = true
@@ -272,6 +278,7 @@ class KeyboardFragment : Fragment() {
                                     repeatRunnable = object : Runnable {
                                         override fun run() {
                                             if (!isKeyPressed) return
+                                            v.performKeyClick()
                                             Thread {
                                                 sender.sendKeyPress(combinedModifier, keyData.hidKeyCode)
                                             }.start()
