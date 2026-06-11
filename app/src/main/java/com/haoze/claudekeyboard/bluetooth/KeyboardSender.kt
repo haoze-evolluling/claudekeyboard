@@ -95,7 +95,7 @@ open class KeyboardSender(
      */
     fun sendKeyPress(modifier: Byte, keyCode: Byte, delayMs: Long = 30) {
         keyboardReport.reset()
-        keyboardReport.bytes[0] = modifier
+        keyboardReport.bytes[1] = modifier
         keyboardReport.key1 = keyCode
         sendKeys()
         Thread.sleep(delayMs)
