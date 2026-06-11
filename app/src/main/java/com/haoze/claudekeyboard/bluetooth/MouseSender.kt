@@ -24,7 +24,7 @@ class MouseSender(
     }
 
     /**
-     * Send a relative mouse movement.
+     * Send a relative mouse movement (no buttons held).
      * @param dx X-axis movement (-127 to 127)
      * @param dy Y-axis movement (-127 to 127)
      */
@@ -34,7 +34,24 @@ class MouseSender(
         mouseReport.deltaY = dy.coerceIn(-127, 127).toByte()
         sendMouseReport()
         // Send zero movement to clear
-        mouseReport.reset()
+        mouseReport.deltaX = 0
+        mouseReport.deltaY = 0
+        sendMouseReport()
+    }
+
+    /**
+     * Send a relative mouse movement while preserving current button state.
+     * Used during drag operations where buttons must stay held.
+     * @param dx X-axis movement (-127 to 127)
+     * @param dy Y-axis movement (-127 to 127)
+     */
+    fun sendMouseMovePreserveButtons(dx: Int, dy: Int) {
+        mouseReport.deltaX = dx.coerceIn(-127, 127).toByte()
+        mouseReport.deltaY = dy.coerceIn(-127, 127).toByte()
+        sendMouseReport()
+        // Clear movement but keep buttons
+        mouseReport.deltaX = 0
+        mouseReport.deltaY = 0
         sendMouseReport()
     }
 

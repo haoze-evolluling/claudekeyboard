@@ -208,7 +208,13 @@ class TouchpadFragment : Fragment() {
 
                     if (moveX != 0 || moveY != 0) {
                         getMouseSender()?.let { sender ->
-                            Thread { sender.sendMouseMove(moveX, moveY) }.start()
+                            Thread {
+                                if (isDragging) {
+                                    sender.sendMouseMovePreserveButtons(moveX, moveY)
+                                } else {
+                                    sender.sendMouseMove(moveX, moveY)
+                                }
+                            }.start()
                         }
                         lastX = event.x
                         lastY = event.y
