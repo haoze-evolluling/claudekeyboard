@@ -301,6 +301,21 @@
 
         </FrameLayout>
 
+        <!-- Touchpad Tab Content -->
+        <FrameLayout
+            android:id="@+id/content_touchpad"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/touchpad_fragment_container"
+                android:name="com.haoze.claudekeyboard.ui.touchpad.TouchpadFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </FrameLayout>
+
     </FrameLayout>
 
     <!-- Divider above bottom nav -->
