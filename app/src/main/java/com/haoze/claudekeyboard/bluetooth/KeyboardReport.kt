@@ -5,120 +5,127 @@ import kotlin.experimental.and
 import kotlin.experimental.or
 
 /**
- * Inline class wrapping an 8-byte HID keyboard report.
- * Report format: [modifier(1) + reserved(1) + key1..key6(6)]
+ * Inline class wrapping a 9-byte HID keyboard report with Report ID.
+ * Report format: [reportId(1) + modifier(1) + reserved(1) + key1..key6(6)]
  * Ported from Kontroller project with fixed modifier getters.
  */
 @JvmInline
 value class KeyboardReport(
-    val bytes: ByteArray = ByteArray(8) { 0 }
+    val bytes: ByteArray = ByteArray(9) { 0 }
 ) {
 
-    // ---- Modifier byte (bytes[0]) ----
+    init {
+        bytes[0] = ID.toByte()  // Set Report ID
+    }
+
+    // ---- Modifier byte (bytes[1]) ----
 
     var leftControl: Boolean
-        get() = bytes[0] and 0b00000001 != 0.toByte()
+        get() = bytes[1] and 0b00000001 != 0.toByte()
         set(value) {
-            bytes[0] = if (value)
-                bytes[0] or 0b00000001
+            bytes[1] = if (value)
+                bytes[1] or 0b00000001
             else
-                bytes[0] and 0b11111110.toByte()
+                bytes[1] and 0b11111110.toByte()
         }
 
     var leftShift: Boolean
-        get() = bytes[0] and 0b00000010 != 0.toByte()
+        get() = bytes[1] and 0b00000010 != 0.toByte()
         set(value) {
-            bytes[0] = if (value)
-                bytes[0] or 0b00000010
+            bytes[1] = if (value)
+                bytes[1] or 0b00000010
             else
-                bytes[0] and 0b11111101.toByte()
+                bytes[1] and 0b11111101.toByte()
         }
 
     var leftAlt: Boolean
-        get() = bytes[0] and 0b00000100 != 0.toByte()
+        get() = bytes[1] and 0b00000100 != 0.toByte()
         set(value) {
-            bytes[0] = if (value)
-                bytes[0] or 0b00000100
+            bytes[1] = if (value)
+                bytes[1] or 0b00000100
             else
-                bytes[0] and 0b11111011.toByte()
+                bytes[1] and 0b11111011.toByte()
         }
 
     var leftGui: Boolean
-        get() = bytes[0] and 0b00001000 != 0.toByte()
+        get() = bytes[1] and 0b00001000 != 0.toByte()
         set(value) {
-            bytes[0] = if (value)
-                bytes[0] or 0b00001000
+            bytes[1] = if (value)
+                bytes[1] or 0b00001000
             else
-                bytes[0] and 0b11110111.toByte()
+                bytes[1] and 0b11110111.toByte()
         }
 
     var rightControl: Boolean
-        get() = bytes[0] and 0b00010000 != 0.toByte()
+        get() = bytes[1] and 0b00010000 != 0.toByte()
         set(value) {
-            bytes[0] = if (value)
-                bytes[0] or 0b00010000
+            bytes[1] = if (value)
+                bytes[1] or 0b00010000
             else
-                bytes[0] and 0b11101111.toByte()
+                bytes[1] and 0b11101111.toByte()
         }
 
     var rightShift: Boolean
-        get() = bytes[0] and 0b00100000 != 0.toByte()
+        get() = bytes[1] and 0b00100000 != 0.toByte()
         set(value) {
-            bytes[0] = if (value)
-                bytes[0] or 0b00100000
+            bytes[1] = if (value)
+                bytes[1] or 0b00100000
             else
-                bytes[0] and 0b11011111.toByte()
+                bytes[1] and 0b11011111.toByte()
         }
 
     var rightAlt: Boolean
-        get() = bytes[0] and 0b01000000 != 0.toByte()
+        get() = bytes[1] and 0b01000000 != 0.toByte()
         set(value) {
-            bytes[0] = if (value)
-                bytes[0] or 0b01000000
+            bytes[1] = if (value)
+                bytes[1] or 0b01000000
             else
-                bytes[0] and 0b10111111.toByte()
+                bytes[1] and 0b10111111.toByte()
         }
 
     var rightGui: Boolean
-        get() = bytes[0] and 0b10000000.toByte() != 0.toByte()
+        get() = bytes[1] and 0b10000000.toByte() != 0.toByte()
         set(value) {
-            bytes[0] = if (value)
-                bytes[0] or 0b10000000.toByte()
+            bytes[1] = if (value)
+                bytes[1] or 0b10000000.toByte()
             else
-                bytes[0] and 0b01111111
+                bytes[1] and 0b01111111
         }
 
-    // ---- Key slots (bytes[2]..bytes[7]) ----
+    // ---- Key slots (bytes[3]..bytes[8]) ----
 
     var key1: Byte
-        get() = bytes[2]
-        set(value) { bytes[2] = value }
-
-    var key2: Byte
         get() = bytes[3]
         set(value) { bytes[3] = value }
 
-    var key3: Byte
+    var key2: Byte
         get() = bytes[4]
         set(value) { bytes[4] = value }
 
-    var key4: Byte
+    var key3: Byte
         get() = bytes[5]
         set(value) { bytes[5] = value }
 
-    var key5: Byte
+    var key4: Byte
         get() = bytes[6]
         set(value) { bytes[6] = value }
 
-    var key6: Byte
+    var key5: Byte
         get() = bytes[7]
         set(value) { bytes[7] = value }
 
-    fun reset() = bytes.fill(0)
+    var key6: Byte
+        get() = bytes[8]
+        set(value) { bytes[8] = value }
+
+    fun reset() {
+        bytes.fill(0)
+        bytes[0] = ID.toByte()  // Preserve Report ID
+    }
 
     companion object {
-        /** Report ID = 0 (no Report ID in descriptor) */
-        const val ID = 0
+        /** Report ID = 1 for keyboard in combined descriptor */
+        const val ID = 1
 
         /** Android KeyEvent.keyCode → HID key code mapping */
         val KeyEventMap = mapOf(
