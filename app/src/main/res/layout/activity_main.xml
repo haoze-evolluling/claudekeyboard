@@ -9,61 +9,75 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <!-- Top Bar -->
+    <!-- Header -->
     <LinearLayout
-        android:id="@+id/top_bar"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="wrap_content"
         android:background="?attr/colorSurface"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp">
+        android:orientation="vertical">
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="@string/app_name"
-            android:textAppearance="?attr/textAppearanceTitleLarge"
-            android:textColor="?attr/colorOnSurface" />
+        <!-- Row 1: App Name + Settings -->
+        <LinearLayout
+            android:id="@+id/top_bar"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/status_chip"
-            style="@style/Widget.Material3.Chip.Assist"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="@string/status_waiting"
-            android:textAppearance="?attr/textAppearanceLabelMedium"
-            android:textColor="@color/status_waiting"
-            app:chipBackgroundColor="@android:color/transparent"
-            app:chipIcon="@android:drawable/ic_dialog_info"
-            app:chipIconTint="@color/status_waiting"
-            app:chipMinHeight="32dp"
-            app:chipStrokeColor="@color/outline"
-            app:chipStrokeWidth="1dp" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/app_name"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:textColor="?attr/colorOnSurface" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_disconnect"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/settings_disconnect"
-            android:textAppearance="?attr/textAppearanceLabelMedium"
-            android:textColor="?attr/colorPrimary"
-            android:visibility="gone" />
+            <ImageButton
+                android:id="@+id/btn_settings"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/ripple_circle"
+                android:contentDescription="@string/settings_title"
+                android:src="@drawable/ic_settings"
+                android:scaleType="centerInside"
+                app:tint="?attr/colorOnSurfaceVariant" />
 
-        <ImageButton
-            android:id="@+id/btn_settings"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="4dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/settings_title"
-            android:src="@drawable/ic_settings"
-            app:tint="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
+
+        <!-- Row 2: Device Name + Connect/Disconnect -->
+        <LinearLayout
+            android:id="@+id/device_bar"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
+
+            <TextView
+                android:id="@+id/tv_device_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <TextView
+                android:id="@+id/tv_device_action"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/connect_device"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="?attr/colorPrimary"
+                android:paddingVertical="6dp"
+                android:paddingHorizontal="14dp"
+                android:background="@drawable/bg_outline_button" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -73,13 +87,13 @@
         android:layout_height="1dp"
         android:background="?attr/colorOutlineVariant" />
 
-    <!-- Core Buttons: 2x2 Grid -->
+    <!-- Core Buttons: 2x3 Grid -->
     <GridLayout
         android:id="@+id/grid_buttons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:columnCount="2"
-        android:rowCount="2"
+        android:rowCount="3"
         android:padding="12dp"
         android:useDefaultMargins="true">
 
@@ -153,6 +167,42 @@
             android:textColor="?attr/colorPrimary"
             app:cornerRadius="12dp"
             app:strokeColor="?attr/colorPrimary"
+            app:strokeWidth="1dp" />
+
+        <!-- Row 2, Col 0: Backspace -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_backspace"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:layout_rowWeight="1"
+            android:gravity="center"
+            android:maxLines="2"
+            android:text="@string/btn_backspace"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="?attr/colorOnSurface"
+            app:cornerRadius="12dp"
+            app:strokeColor="?attr/colorOutline"
+            app:strokeWidth="1dp" />
+
+        <!-- Row 2, Col 1: Enter -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_enter"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:layout_rowWeight="1"
+            android:gravity="center"
+            android:maxLines="2"
+            android:text="@string/btn_enter"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="?attr/colorOnSurface"
+            app:cornerRadius="12dp"
+            app:strokeColor="?attr/colorOutline"
             app:strokeWidth="1dp" />
 
     </GridLayout>

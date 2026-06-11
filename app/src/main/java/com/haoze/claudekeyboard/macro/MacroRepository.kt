@@ -50,8 +50,8 @@ class MacroRepository(private val context: Context) {
     /**
      * Add a custom macro.
      */
-    fun addCustomMacro(label: String, command: String): Macro {
-        val macro = Macro.custom(label, command)
+    fun addCustomMacro(label: String, command: String, sendEnter: Boolean = false): Macro {
+        val macro = Macro.custom(label, command, sendEnter)
         val macros = getAllMacros().toMutableList()
         macros.add(macro)
         saveMacrosToStorage(macros)
@@ -61,13 +61,13 @@ class MacroRepository(private val context: Context) {
     /**
      * Update a custom macro.
      */
-    fun updateCustomMacro(id: String, label: String, command: String): Boolean {
+    fun updateCustomMacro(id: String, label: String, command: String, sendEnter: Boolean = false): Boolean {
         val macros = getAllMacros().toMutableList()
         val index = macros.indexOfFirst { it.id == id && !it.isPreset }
 
         if (index == -1) return false
 
-        macros[index] = macros[index].copy(label = label, command = command)
+        macros[index] = macros[index].copy(label = label, command = command, sendEnter = sendEnter)
         saveMacrosToStorage(macros)
         return true
     }
@@ -108,7 +108,8 @@ class MacroRepository(private val context: Context) {
                     label = obj.getString("label"),
                     command = obj.getString("command"),
                     isPreset = obj.getBoolean("isPreset"),
-                    sortOrder = obj.getInt("sortOrder")
+                    sortOrder = obj.getInt("sortOrder"),
+                    sendEnter = obj.optBoolean("sendEnter", false)
                 )
             }
         } catch (e: Exception) {
@@ -128,6 +129,7 @@ class MacroRepository(private val context: Context) {
                 put("command", macro.command)
                 put("isPreset", macro.isPreset)
                 put("sortOrder", macro.sortOrder)
+                put("sendEnter", macro.sendEnter)
             }
             jsonArray.put(obj)
         }

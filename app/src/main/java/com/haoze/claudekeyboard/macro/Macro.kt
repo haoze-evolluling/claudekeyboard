@@ -10,7 +10,8 @@ data class Macro(
     val label: String,
     val command: String,
     val isPreset: Boolean = false,
-    val sortOrder: Int = 0
+    val sortOrder: Int = 0,
+    val sendEnter: Boolean = false
 ) {
     companion object {
         /**
@@ -29,12 +30,13 @@ data class Macro(
         /**
          * Create a custom macro.
          */
-        fun custom(label: String, command: String): Macro {
+        fun custom(label: String, command: String, sendEnter: Boolean = false): Macro {
             return Macro(
                 label = label,
                 command = command,
                 isPreset = false,
-                sortOrder = 1000 // Custom macros come after presets
+                sortOrder = 1000, // Custom macros come after presets
+                sendEnter = sendEnter
             )
         }
     }

@@ -19,6 +19,7 @@ class MacroEditDialogFragment : DialogFragment() {
         private const val ARG_MACRO_ID = "macro_id"
         private const val ARG_MACRO_LABEL = "macro_label"
         private const val ARG_MACRO_COMMAND = "macro_command"
+        private const val ARG_MACRO_SEND_ENTER = "macro_send_enter"
         private const val ARG_IS_EDIT = "is_edit"
 
         /**
@@ -42,19 +43,20 @@ class MacroEditDialogFragment : DialogFragment() {
                     putString(ARG_MACRO_ID, macro.id)
                     putString(ARG_MACRO_LABEL, macro.label)
                     putString(ARG_MACRO_COMMAND, macro.command)
+                    putBoolean(ARG_MACRO_SEND_ENTER, macro.sendEnter)
                 }
             }
         }
     }
 
-    private var onSaveListener: ((String?, String, String) -> Unit)? = null
+    private var onSaveListener: ((String?, String, String, Boolean) -> Unit)? = null
     private var onDeleteListener: ((String) -> Unit)? = null
 
     /**
      * Set the save listener.
-     * @param listener Callback with (id?, label, command) - id is null for new macros
+     * @param listener Callback with (id?, label, command, sendEnter) - id is null for new macros
      */
-    fun setOnSaveListener(listener: (String?, String, String) -> Unit) {
+    fun setOnSaveListener(listener: (String?, String, String, Boolean) -> Unit) {
         onSaveListener = listener
     }
 
@@ -71,17 +73,20 @@ class MacroEditDialogFragment : DialogFragment() {
         val macroId = arguments?.getString(ARG_MACRO_ID)
         val macroLabel = arguments?.getString(ARG_MACRO_LABEL) ?: ""
         val macroCommand = arguments?.getString(ARG_MACRO_COMMAND) ?: ""
+        val macroSendEnter = arguments?.getBoolean(ARG_MACRO_SEND_ENTER) ?: false
 
         val inflater = LayoutInflater.from(requireContext())
         val view = inflater.inflate(R.layout.dialog_macro_edit, null)
 
         val etLabel = view.findViewById<EditText>(R.id.et_macro_label)
         val etCommand = view.findViewById<EditText>(R.id.et_macro_command)
+        val switchSendEnter = view.findViewById<com.google.android.material.materialswitch.MaterialSwitch>(R.id.switch_send_enter)
 
         // Pre-fill if editing
         if (isEdit) {
             etLabel.setText(macroLabel)
             etCommand.setText(macroCommand)
+            switchSendEnter.isChecked = macroSendEnter
         }
 
         val dialogBuilder = MaterialAlertDialogBuilder(requireContext())
@@ -90,9 +95,10 @@ class MacroEditDialogFragment : DialogFragment() {
             .setPositiveButton(R.string.dialog_save) { _, _ ->
                 val label = etLabel.text.toString().trim()
                 val command = etCommand.text.toString().trim()
+                val sendEnter = switchSendEnter.isChecked
 
                 if (label.isNotEmpty() && command.isNotEmpty()) {
-                    onSaveListener?.invoke(macroId, label, command)
+                    onSaveListener?.invoke(macroId, label, command, sendEnter)
                 }
             }
             .setNegativeButton(R.string.dialog_cancel, null)

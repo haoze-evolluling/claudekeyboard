@@ -473,6 +473,11 @@ class BluetoothHidService : Service() {
     fun getLastConnectedDeviceName(): String? = lastConnectedDeviceName
 
     /**
+     * Get the address of the last connected device (persisted).
+     */
+    fun getLastConnectedDeviceAddress(): String? = lastConnectedDeviceAddress
+
+    /**
      * Disconnect from the current device.
      */
     fun disconnect() {
@@ -491,6 +496,48 @@ class BluetoothHidService : Service() {
         lastReconnectAttempt = 0
         setDiscoverable()
         return tryConnectToLastDevice()
+    }
+
+    /**
+     * Connect to a specific bonded device by address.
+     * @param address Bluetooth MAC address of the target device
+     * @return true if the connect call was initiated
+     */
+    fun connectToDevice(address: String): Boolean {
+        val hd = hidDevice ?: return false
+        val adapter = bluetoothAdapter ?: return false
+        if (!isRegistered) {
+            Log.w(TAG, "Cannot connect: HID not registered yet")
+            return false
+        }
+
+        // Disconnect current device if connected
+        if (isConnected) {
+            userInitiatedDisconnect = true
+            connectedDevice?.let { hd.disconnect(it) }
+        }
+
+        val device = adapter.bondedDevices?.find { it.address == address } ?: run {
+            Log.w(TAG, "Device ($address) not found in bonded devices")
+            return false
+        }
+
+        // Update last device for reconnect
+        lastConnectedDeviceAddress = address
+        lastConnectedDeviceName = device.name
+        userInitiatedDisconnect = false
+        lastReconnectAttempt = 0
+        setDiscoverable()
+
+        Log.d(TAG, "Attempting HID connect to ${device.name} ($address)")
+        val result = try {
+            hd.connect(device)
+        } catch (e: Exception) {
+            Log.w(TAG, "HID connect failed: ${e.message}")
+            false
+        }
+        Log.d(TAG, "hd.connect returned $result")
+        return result
     }
 
     /**

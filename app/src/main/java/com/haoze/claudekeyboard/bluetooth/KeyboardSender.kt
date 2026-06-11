@@ -142,6 +142,7 @@ open class KeyboardSender(
         const val KEY_N: Byte = 0x11
         const val KEY_Y: Byte = 0x1C
         const val KEY_ENTER: Byte = 0x28
+        const val KEY_BACKSPACE: Byte = 0x2A
         const val KEY_SPACE: Byte = 0x2C
         const val KEY_MINUS: Byte = 0x2D
         const val KEY_EQUAL: Byte = 0x2E
