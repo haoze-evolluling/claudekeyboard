@@ -193,7 +193,7 @@ class MainActivity : AppCompatActivity() {
                     bottomNav.postDelayed({
                         bottomNav.visibility = View.VISIBLE
                         dividerAboveNav.visibility = View.VISIBLE
-                    }, 300)
+                    }, 1000)
                     true
                 }
                 R.id.nav_keyboard -> {
