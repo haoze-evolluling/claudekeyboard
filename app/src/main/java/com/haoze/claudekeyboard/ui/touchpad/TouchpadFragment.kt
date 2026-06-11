@@ -216,8 +216,8 @@ class TouchpadFragment : Fragment() {
                     // Vertical scroll (natural: swipe up = dy negative = scroll down)
                     val vScrollAmount = (dy * sensitivity / 50).toInt().coerceIn(-5, 5)
 
-                    // Horizontal scroll (natural: swipe right = dx positive = scroll right)
-                    val hScrollAmount = (dx * sensitivity / 50).toInt().coerceIn(-5, 5)
+                    // Horizontal scroll (inverted: swipe left = scroll right, swipe right = scroll left)
+                    val hScrollAmount = (-dx * sensitivity / 50).toInt().coerceIn(-5, 5)
 
                     if (vScrollAmount != 0 || hScrollAmount != 0) {
                         getMouseSender()?.let { sender ->
