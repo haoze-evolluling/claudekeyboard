@@ -103,11 +103,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getThemeModeName(mode: Int): String {
-        return when (mode) {
+        val modeName = when (mode) {
             Constants.THEME_LIGHT -> getString(R.string.theme_light)
             Constants.THEME_DARK -> getString(R.string.theme_dark)
             else -> getString(R.string.theme_follow_system)
         }
+        return "${getString(R.string.settings_theme_mode)}：$modeName"
     }
 
     /**
@@ -309,16 +310,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun showSettingsDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_settings, null)
-        val tvThemeValue = dialogView.findViewById<TextView>(R.id.tv_theme_value)
-        val llThemeMode = dialogView.findViewById<View>(R.id.ll_theme_mode)
+        val tvThemeMode = dialogView.findViewById<TextView>(R.id.tv_theme_mode)
         val tvResetMacros = dialogView.findViewById<TextView>(R.id.tv_reset_macros)
 
         val prefs = getSharedPreferences(Constants.PREFS_NAME_SETTINGS, Context.MODE_PRIVATE)
         val currentTheme = prefs.getInt(Constants.KEY_THEME_MODE, Constants.THEME_FOLLOW_SYSTEM)
-        tvThemeValue.text = getThemeModeName(currentTheme)
+        tvThemeMode.text = getThemeModeName(currentTheme)
 
-        llThemeMode.setOnClickListener {
-            showThemeSelectionDialog(tvThemeValue)
+        tvThemeMode.setOnClickListener {
+            showThemeSelectionDialog(tvThemeMode)
         }
 
         tvResetMacros.setOnClickListener {
@@ -340,7 +340,7 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showThemeSelectionDialog(tvThemeValue: TextView) {
+    private fun showThemeSelectionDialog(tvThemeMode: TextView) {
         val themes = arrayOf(
             getString(R.string.theme_follow_system),
             getString(R.string.theme_light),
@@ -354,7 +354,7 @@ class MainActivity : AppCompatActivity() {
             .setTitle(R.string.settings_theme_mode)
             .setSingleChoiceItems(themes, currentTheme) { dialog, which ->
                 prefs.edit().putInt(Constants.KEY_THEME_MODE, which).apply()
-                tvThemeValue.text = themes[which]
+                tvThemeMode.text = getThemeModeName(which)
                 AppCompatDelegate.setDefaultNightMode(when (which) {
                     Constants.THEME_LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
                     Constants.THEME_DARK -> AppCompatDelegate.MODE_NIGHT_YES
