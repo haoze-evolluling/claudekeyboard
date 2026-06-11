@@ -9,257 +9,309 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <!-- Header -->
-    <LinearLayout
+    <!-- Content Area (takes remaining space) -->
+    <FrameLayout
+        android:id="@+id/content_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- Claude Tab Content (current interface) -->
+        <LinearLayout
+            android:id="@+id/content_claude"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <!-- Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/colorSurface"
+                android:orientation="vertical">
+
+                <!-- Row 1: App Name + Settings -->
+                <LinearLayout
+                    android:id="@+id/top_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/app_name"
+                        android:textAppearance="?attr/textAppearanceTitleLarge"
+                        android:textColor="?attr/colorOnSurface" />
+
+                    <ImageButton
+                        android:id="@+id/btn_settings"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:background="@drawable/ripple_circle"
+                        android:contentDescription="@string/settings_title"
+                        android:src="@drawable/ic_settings"
+                        android:scaleType="centerInside"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+
+                </LinearLayout>
+
+                <!-- Row 2: Device Name + Connect/Disconnect -->
+                <LinearLayout
+                    android:id="@+id/device_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp">
+
+                    <TextView
+                        android:id="@+id/tv_device_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:id="@+id/tv_device_action"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/connect_device"
+                        android:textAppearance="?attr/textAppearanceLabelLarge"
+                        android:textColor="?attr/colorPrimary"
+                        android:paddingVertical="6dp"
+                        android:paddingHorizontal="14dp"
+                        android:background="@drawable/bg_outline_button" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?attr/colorOutlineVariant" />
+
+            <!-- Core Buttons: 2x3 Grid -->
+            <GridLayout
+                android:id="@+id/grid_buttons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="2"
+                android:rowCount="3"
+                android:padding="12dp"
+                android:useDefaultMargins="true">
+
+                <!-- Row 0, Col 0: Yes -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_yes"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="72dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:layout_rowWeight="1"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:text="@string/btn_yes"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="?attr/colorOutline"
+                    app:strokeWidth="1dp" />
+
+                <!-- Row 0, Col 1: Yes to All -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_yes_to_all"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="72dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:layout_rowWeight="1"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:text="@string/btn_yes_to_all"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="?attr/colorOutline"
+                    app:strokeWidth="1dp" />
+
+                <!-- Row 1, Col 0: No -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_no"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="72dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:layout_rowWeight="1"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:text="@string/btn_no"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="?attr/colorOutline"
+                    app:strokeWidth="1dp" />
+
+                <!-- Row 1, Col 1: Ctrl+C -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_ctrl_c"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="72dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:layout_rowWeight="1"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:text="@string/btn_ctrl_c"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorPrimary"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="?attr/colorPrimary"
+                    app:strokeWidth="1dp" />
+
+                <!-- Row 2, Col 0: Backspace -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_backspace"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="72dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:layout_rowWeight="1"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:text="@string/btn_backspace"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="?attr/colorOutline"
+                    app:strokeWidth="1dp" />
+
+                <!-- Row 2, Col 1: Enter -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_enter"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="72dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:layout_rowWeight="1"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:text="@string/btn_enter"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="?attr/colorOutline"
+                    app:strokeWidth="1dp" />
+
+            </GridLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="12dp"
+                android:background="?attr/colorOutlineVariant" />
+
+            <!-- Text Input -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_input"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="12dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="8dp"
+                android:hint="@string/hint_input_text"
+                app:endIconDrawable="@android:drawable/ic_menu_send"
+                app:endIconMode="custom"
+                app:endIconTint="?attr/colorPrimary"
+                app:boxStrokeColor="@color/outline">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_input_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 !@#$%^&amp;*()-=[]\;',./`~{}|:&quot;&lt;&gt;?_"
+                    android:imeOptions="actionSend"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?attr/colorOnSurfaceVariant" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Macro list header -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/macro_list_title"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <!-- Macros RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_macros"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                android:padding="4dp" />
+
+        </LinearLayout>
+
+        <!-- Keyboard Tab Content (placeholder) -->
+        <FrameLayout
+            android:id="@+id/content_keyboard"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/keyboard_placeholder"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+        </FrameLayout>
+
+    </FrameLayout>
+
+    <!-- Divider above bottom nav -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutlineVariant" />
+
+    <!-- Bottom Navigation Bar -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_nav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorSurface"
-        android:orientation="vertical">
-
-        <!-- Row 1: App Name + Settings -->
-        <LinearLayout
-            android:id="@+id/top_bar"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="16dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="@string/app_name"
-                android:textAppearance="?attr/textAppearanceTitleLarge"
-                android:textColor="?attr/colorOnSurface" />
-
-            <ImageButton
-                android:id="@+id/btn_settings"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="@drawable/ripple_circle"
-                android:contentDescription="@string/settings_title"
-                android:src="@drawable/ic_settings"
-                android:scaleType="centerInside"
-                app:tint="?attr/colorOnSurfaceVariant" />
-
-        </LinearLayout>
-
-        <!-- Row 2: Device Name + Connect/Disconnect -->
-        <LinearLayout
-            android:id="@+id/device_bar"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="16dp">
-
-            <TextView
-                android:id="@+id/tv_device_name"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textColor="?attr/colorOnSurfaceVariant" />
-
-            <TextView
-                android:id="@+id/tv_device_action"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/connect_device"
-                android:textAppearance="?attr/textAppearanceLabelLarge"
-                android:textColor="?attr/colorPrimary"
-                android:paddingVertical="6dp"
-                android:paddingHorizontal="14dp"
-                android:background="@drawable/bg_outline_button" />
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <!-- Divider -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="?attr/colorOutlineVariant" />
-
-    <!-- Core Buttons: 2x3 Grid -->
-    <GridLayout
-        android:id="@+id/grid_buttons"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:columnCount="2"
-        android:rowCount="3"
-        android:padding="12dp"
-        android:useDefaultMargins="true">
-
-        <!-- Row 0, Col 0: Yes -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_yes"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="72dp"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:layout_rowWeight="1"
-            android:gravity="center"
-            android:maxLines="2"
-            android:text="@string/btn_yes"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorOnSurface"
-            app:cornerRadius="12dp"
-            app:strokeColor="?attr/colorOutline"
-            app:strokeWidth="1dp" />
-
-        <!-- Row 0, Col 1: Yes to All -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_yes_to_all"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="72dp"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:layout_rowWeight="1"
-            android:gravity="center"
-            android:maxLines="2"
-            android:text="@string/btn_yes_to_all"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorOnSurface"
-            app:cornerRadius="12dp"
-            app:strokeColor="?attr/colorOutline"
-            app:strokeWidth="1dp" />
-
-        <!-- Row 1, Col 0: No -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_no"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="72dp"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:layout_rowWeight="1"
-            android:gravity="center"
-            android:maxLines="2"
-            android:text="@string/btn_no"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorOnSurface"
-            app:cornerRadius="12dp"
-            app:strokeColor="?attr/colorOutline"
-            app:strokeWidth="1dp" />
-
-        <!-- Row 1, Col 1: Ctrl+C -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_ctrl_c"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="72dp"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:layout_rowWeight="1"
-            android:gravity="center"
-            android:maxLines="2"
-            android:text="@string/btn_ctrl_c"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorPrimary"
-            app:cornerRadius="12dp"
-            app:strokeColor="?attr/colorPrimary"
-            app:strokeWidth="1dp" />
-
-        <!-- Row 2, Col 0: Backspace -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_backspace"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="72dp"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:layout_rowWeight="1"
-            android:gravity="center"
-            android:maxLines="2"
-            android:text="@string/btn_backspace"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorOnSurface"
-            app:cornerRadius="12dp"
-            app:strokeColor="?attr/colorOutline"
-            app:strokeWidth="1dp" />
-
-        <!-- Row 2, Col 1: Enter -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_enter"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="72dp"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:layout_rowWeight="1"
-            android:gravity="center"
-            android:maxLines="2"
-            android:text="@string/btn_enter"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorOnSurface"
-            app:cornerRadius="12dp"
-            app:strokeColor="?attr/colorOutline"
-            app:strokeWidth="1dp" />
-
-    </GridLayout>
-
-    <!-- Divider -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginHorizontal="12dp"
-        android:background="?attr/colorOutlineVariant" />
-
-    <!-- Text Input -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/til_input"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="12dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="8dp"
-        android:hint="@string/hint_input_text"
-        app:endIconDrawable="@android:drawable/ic_menu_send"
-        app:endIconMode="custom"
-        app:endIconTint="?attr/colorPrimary"
-        app:boxStrokeColor="@color/outline">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_input_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 !@#$%^&amp;*()-=[]\;',./`~{}|:&quot;&lt;&gt;?_"
-            android:imeOptions="actionSend"
-            android:inputType="text"
-            android:maxLines="1"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOnSurfaceVariant" />
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Macro list header -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="4dp"
-        android:text="@string/macro_list_title"
-        android:textAppearance="?attr/textAppearanceTitleSmall"
-        android:textColor="?attr/colorOnSurfaceVariant" />
-
-    <!-- Macros RecyclerView -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_macros"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:padding="4dp" />
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="@color/bottom_nav_color"
+        app:itemTextColor="@color/bottom_nav_color" />
 
 </LinearLayout>

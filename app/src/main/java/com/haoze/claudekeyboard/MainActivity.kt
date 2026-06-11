@@ -23,6 +23,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.haoze.claudekeyboard.bluetooth.BluetoothHidService
 import com.haoze.claudekeyboard.bluetooth.KeyboardSender
 import com.haoze.claudekeyboard.macro.Macro
@@ -54,6 +55,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var macroAdapter: MacroButtonAdapter
     private var deviceListDialog: DeviceListBottomSheetFragment? = null
 
+    // Bottom navigation
+    private lateinit var bottomNav: BottomNavigationView
+    private lateinit var contentClaude: View
+    private lateinit var contentKeyboard: View
+
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as BluetoothHidService.LocalBinder
@@ -74,10 +80,10 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        setupWindowInsets()
-
         macroRepository = MacroRepository(this)
         initViews()
+        setupWindowInsets()
+        setupBottomNavigation()
         setupCoreButtons()
         setupMacroRecyclerView()
         setupTextInput()
@@ -113,6 +119,7 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Handle display cutout (front camera) + system bars.
+     * Bottom inset is handled by BottomNavigationView separately.
      */
     private fun setupWindowInsets() {
         val mainView = findViewById<View>(R.id.main)
@@ -125,8 +132,15 @@ class MainActivity : AppCompatActivity() {
             val left = maxOf(systemBars.left, cutout?.safeInsetLeft ?: 0)
             val top = maxOf(systemBars.top, cutout?.safeInsetTop ?: 0)
             val right = maxOf(systemBars.right, cutout?.safeInsetRight ?: 0)
-            val bottom = maxOf(systemBars.bottom, cutout?.safeInsetBottom ?: 0)
-            v.setPadding(left, top, right, bottom)
+            // Don't apply bottom padding here; bottom nav handles it
+            v.setPadding(left, top, right, 0)
+            insets
+        }
+
+        // Let bottom nav handle the bottom system bar inset
+        ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(0, 0, 0, systemBars.bottom)
             insets
         }
     }
@@ -144,6 +158,9 @@ class MainActivity : AppCompatActivity() {
         inputLayout = findViewById(R.id.til_input)
         inputText = findViewById(R.id.et_input_text)
         macroRecyclerView = findViewById(R.id.rv_macros)
+        bottomNav = findViewById(R.id.bottom_nav)
+        contentClaude = findViewById(R.id.content_claude)
+        contentKeyboard = findViewById(R.id.content_keyboard)
 
         tvDeviceAction.setOnClickListener {
             val service = hidService
@@ -154,6 +171,26 @@ class MainActivity : AppCompatActivity() {
             }
         }
         btnSettings.setOnClickListener { showSettingsDialog() }
+    }
+
+    private fun setupBottomNavigation() {
+        bottomNav.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_claude -> {
+                    contentClaude.visibility = View.VISIBLE
+                    contentKeyboard.visibility = View.GONE
+                    true
+                }
+                R.id.nav_keyboard -> {
+                    contentClaude.visibility = View.GONE
+                    contentKeyboard.visibility = View.VISIBLE
+                    true
+                }
+                else -> false
+            }
+        }
+        // Default: Claude tab selected
+        bottomNav.selectedItemId = R.id.nav_claude
     }
 
     private fun setupCoreButtons() {

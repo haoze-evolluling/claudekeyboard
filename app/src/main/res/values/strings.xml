@@ -67,4 +67,9 @@
     <string name="dialog_ok">确定</string>
     <string name="connect_device">连接设备</string>
     <string name="disconnect_device">断开连接</string>
+
+    <!-- Bottom Navigation Tabs -->
+    <string name="tab_claude">Claude</string>
+    <string name="tab_keyboard">键盘</string>
+    <string name="keyboard_placeholder">键盘功能开发中…</string>
 </resources>
