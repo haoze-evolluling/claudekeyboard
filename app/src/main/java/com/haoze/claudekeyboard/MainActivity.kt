@@ -144,8 +144,6 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(0, 0, 0, systemBars.bottom)
-            // Make visible after insets are applied to avoid layout flash during rotation
-            if (v.visibility == View.INVISIBLE) v.visibility = View.VISIBLE
             insets
         }
     }
@@ -187,11 +185,15 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_claude -> {
                     contentClaude.visibility = View.VISIBLE
                     contentKeyboard.visibility = View.GONE
-                    // Show bottom nav for Claude tab
-                    bottomNav.visibility = View.VISIBLE
-                    dividerAboveNav.visibility = View.VISIBLE
-                    // Switch back to portrait for Claude tab
+                    // Hide bottom nav first, then show after rotation layout settles
+                    bottomNav.visibility = View.INVISIBLE
+                    dividerAboveNav.visibility = View.INVISIBLE
                     requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    // Post to show after layout pass completes (rotation done)
+                    bottomNav.post {
+                        bottomNav.visibility = View.VISIBLE
+                        dividerAboveNav.visibility = View.VISIBLE
+                    }
                     true
                 }
                 R.id.nav_keyboard -> {
