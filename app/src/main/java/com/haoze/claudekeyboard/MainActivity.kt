@@ -34,6 +34,7 @@ import com.haoze.claudekeyboard.ui.keyboard.KeyboardFragment
 import com.haoze.claudekeyboard.ui.macro.MacroButtonAdapter
 import com.haoze.claudekeyboard.ui.macro.MacroEditDialogFragment
 import com.haoze.claudekeyboard.util.Constants
+import com.haoze.claudekeyboard.util.performKeyClick
 
 class MainActivity : AppCompatActivity() {
 
@@ -166,6 +167,7 @@ class MainActivity : AppCompatActivity() {
         contentKeyboard = findViewById(R.id.content_keyboard)
 
         tvDeviceAction.setOnClickListener {
+            it.performKeyClick()
             val service = hidService
             if (service != null && service.isConnected()) {
                 service.disconnect()
@@ -173,7 +175,10 @@ class MainActivity : AppCompatActivity() {
                 showDeviceListDialog()
             }
         }
-        btnSettings.setOnClickListener { showSettingsDialog() }
+        btnSettings.setOnClickListener {
+            it.performKeyClick()
+            showSettingsDialog()
+        }
     }
 
     private fun setupBottomNavigation() {
@@ -182,6 +187,7 @@ class MainActivity : AppCompatActivity() {
         var isFirstLoad = true
 
         bottomNav.setOnItemSelectedListener { item ->
+            bottomNav.performKeyClick()
             when (item.itemId) {
                 R.id.nav_claude -> {
                     contentClaude.visibility = View.VISIBLE
@@ -260,21 +266,27 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupCoreButtons() {
         btnYes.setOnClickListener {
+            it.performKeyClick()
             hidService?.getKeyboardSender()?.let { s -> Thread { s.sendText("y") }.start() }
         }
         btnNo.setOnClickListener {
+            it.performKeyClick()
             hidService?.getKeyboardSender()?.let { s -> Thread { s.sendText("n") }.start() }
         }
         btnCtrlC.setOnClickListener {
+            it.performKeyClick()
             hidService?.getKeyboardSender()?.let { s -> Thread { s.sendKeyPress(KeyboardSender.MODIFIER_CTRL_LEFT, KeyboardSender.KEY_C) }.start() }
         }
         btnYesToAll.setOnClickListener {
+            it.performKeyClick()
             hidService?.getKeyboardSender()?.let { s -> Thread { s.sendText("a") }.start() }
         }
         btnBackspace.setOnClickListener {
+            it.performKeyClick()
             hidService?.getKeyboardSender()?.let { s -> Thread { s.sendKeyPress(0x00, KeyboardSender.KEY_BACKSPACE) }.start() }
         }
         btnEnter.setOnClickListener {
+            it.performKeyClick()
             hidService?.getKeyboardSender()?.let { s -> Thread { s.sendKeyPress(0x00, KeyboardSender.KEY_ENTER) }.start() }
         }
     }
@@ -311,7 +323,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupTextInput() {
-        inputLayout.setEndIconOnClickListener { sendInputText() }
+        inputLayout.setEndIconOnClickListener {
+            it.performKeyClick()
+            sendInputText()
+        }
         inputText.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEND) { sendInputText(); true } else false
         }
