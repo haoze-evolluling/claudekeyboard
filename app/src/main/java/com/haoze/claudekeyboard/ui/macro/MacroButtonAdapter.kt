@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.haoze.claudekeyboard.R
 import com.haoze.claudekeyboard.macro.Macro
+import com.haoze.claudekeyboard.util.performKeyClick
 
 /**
  * Adapter for displaying macro buttons in a RecyclerView.
@@ -36,10 +37,12 @@ class MacroButtonAdapter(
             button.text = macro.label
 
             button.setOnClickListener {
+                it.performKeyClick()
                 onMacroClick(macro)
             }
 
             button.setOnLongClickListener {
+                it.performKeyClick()
                 onMacroLongClick(macro)
                 true
             }
