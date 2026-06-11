@@ -24,7 +24,6 @@ import com.haoze.claudekeyboard.bluetooth.KeyboardSender
 class KeyboardFragment : Fragment() {
 
     // Modifier state
-    private var isShiftActive = false
     private var isCtrlLeftActive = false   // Left Ctrl: toggle, hold for combos
     private var isAltLeftActive = false    // Left Alt: toggle, hold for combos
     private var isWinLeftActive = false   // Left Win: one-shot, sends standalone Win keypress
@@ -110,7 +109,7 @@ class KeyboardFragment : Fragment() {
     )
 
     private val row2Keys = listOf(
-        KeyData("Caps", "", KeyboardSender.KEY_ESC, type = KeyType.SPECIAL, weight = 1.5f),
+        KeyData("Caps", "", KeyboardSender.KEY_CAPS_LOCK, type = KeyType.SPECIAL, weight = 1.5f),
         KeyData("A", "", KeyboardSender.KEY_A),
         KeyData("S", "", KeyboardSender.KEY_S),
         KeyData("D", "", KeyboardSender.KEY_D),
@@ -279,7 +278,6 @@ class KeyboardFragment : Fragment() {
 
                                 // Build modifier once for this press and all repeats
                                 val effectiveModifier = when {
-                                    isShiftActive -> KeyboardSender.MODIFIER_SHIFT_LEFT
                                     isSymbolLock && keyData.shiftLabel.isNotEmpty() -> KeyboardSender.MODIFIER_SHIFT_LEFT
                                     isCapsLock && keyData.type == KeyType.NORMAL && keyData.primaryLabel[0].isLetter() -> KeyboardSender.MODIFIER_SHIFT_LEFT
                                     else -> 0x00
@@ -292,13 +290,6 @@ class KeyboardFragment : Fragment() {
                                     Thread {
                                         sender.sendKeyPress(combinedModifier, keyData.hidKeyCode)
                                     }.start()
-
-                                    // Auto-release shift after key press (one-shot)
-                                    if (isShiftActive) {
-                                        isShiftActive = false
-                                        updateModifierVisuals()
-                                        updateAllKeyLabels()
-                                    }
 
                                     // Start long-press repeat
                                     repeatRunnable = object : Runnable {
@@ -369,7 +360,7 @@ class KeyboardFragment : Fragment() {
      */
     private fun updateKeyLabel(button: TextView, keyData: KeyData, shiftTextSize: Float) {
         if (keyData.type == KeyType.NORMAL && keyData.shiftLabel.isNotEmpty()) {
-            val displayLabel = if (isShiftActive || isSymbolLock || isCapsLock) {
+            val displayLabel = if (isSymbolLock || isCapsLock) {
                 keyData.shiftLabel
             } else {
                 keyData.primaryLabel
@@ -413,7 +404,6 @@ class KeyboardFragment : Fragment() {
             }
             KeyType.NORMAL -> {
                 val effectiveModifier = when {
-                    isShiftActive -> KeyboardSender.MODIFIER_SHIFT_LEFT
                     isSymbolLock && keyData.shiftLabel.isNotEmpty() -> KeyboardSender.MODIFIER_SHIFT_LEFT
                     isCapsLock && keyData.primaryLabel[0].isLetter() -> KeyboardSender.MODIFIER_SHIFT_LEFT
                     else -> 0x00
@@ -422,14 +412,6 @@ class KeyboardFragment : Fragment() {
                 Thread { sender.sendKeyPress(combinedModifier, keyData.hidKeyCode) }.start()
             }
         }
-
-        // Auto-release shift after key press (one-shot behavior)
-        if (isShiftActive) {
-            isShiftActive = false
-            updateModifierVisuals()
-            updateAllKeyLabels()
-        }
-        // Right Win stays active until manually toggled off
     }
 
     /**
@@ -438,7 +420,11 @@ class KeyboardFragment : Fragment() {
     private fun toggleModifier(modifierBit: Byte) {
         when (modifierBit) {
             KeyboardSender.MODIFIER_SHIFT_LEFT -> {
-                isShiftActive = !isShiftActive
+                // Left Shift: fire-and-forget, sends standalone Shift keypress
+                val sender = getKeyboardSender()
+                if (sender != null) {
+                    Thread { sender.sendKeyPress(KeyboardSender.MODIFIER_SHIFT_LEFT, 0x00) }.start()
+                }
             }
             KeyboardSender.MODIFIER_SHIFT_RIGHT -> {
                 isSymbolLock = !isSymbolLock
@@ -494,7 +480,6 @@ class KeyboardFragment : Fragment() {
     private fun buildModifierByte(): Byte {
         var modifier: Byte = 0
         if (isCtrlLeftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_CTRL_LEFT.toInt()).toByte()
-        if (isShiftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_SHIFT_LEFT.toInt()).toByte()
         if (isSymbolLock) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_SHIFT_LEFT.toInt()).toByte()
         if (isAltLeftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_ALT_LEFT.toInt()).toByte()
         if (isWinLeftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_GUI_LEFT.toInt()).toByte()
@@ -512,10 +497,10 @@ class KeyboardFragment : Fragment() {
         val activeTextColor = resolveAttrColor(com.google.android.material.R.attr.colorOnPrimary)
         val normalTextColor = resolveAttrColor(com.google.android.material.R.attr.colorOnSurface)
 
-        // Left Shift buttons (one-shot modifier)
+        // Left Shift buttons (fire-and-forget, no persistent state)
         for (btn in leftShiftButtons) {
-            btn.setBackgroundResource(if (isShiftActive) activeBg else normalBg)
-            btn.setTextColor(if (isShiftActive) activeTextColor else normalTextColor)
+            btn.setBackgroundResource(normalBg)
+            btn.setTextColor(normalTextColor)
         }
 
         // Right Shift buttons (symbol lock toggle)
