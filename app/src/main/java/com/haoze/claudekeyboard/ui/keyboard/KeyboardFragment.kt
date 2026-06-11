@@ -12,7 +12,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.haoze.claudekeyboard.MainActivity
 import com.haoze.claudekeyboard.R
@@ -30,10 +29,12 @@ class KeyboardFragment : Fragment() {
     private var isAltActive = false
     private var isWinActive = false
     private var isCapsLock = false
+    private var isSymbolLock = false  // Right Shift: toggle symbol mode for number/punctuation keys
 
     // Modifier button references for visual state updates
-    private val shiftButtons = mutableListOf<TextView>()
-    private var ctrlButton: TextView? = null
+    private val leftShiftButtons = mutableListOf<TextView>()
+    private val rightShiftButtons = mutableListOf<TextView>()
+    private val ctrlButtons = mutableListOf<TextView>()
     private var altLeftButton: TextView? = null
     private var altRightButton: TextView? = null
     private var winLeftButton: TextView? = null
@@ -42,8 +43,10 @@ class KeyboardFragment : Fragment() {
     // All key buttons for shift label updates
     private val allKeyButtons = mutableMapOf<TextView, KeyData>()
 
-    // Caps lock long press handler
+    // Key repeat handler
     private val handler = Handler(Looper.getMainLooper())
+    private var repeatRunnable: Runnable? = null
+    private var isKeyPressed = false
 
     /**
      * Key type enum.
@@ -132,7 +135,7 @@ class KeyboardFragment : Fragment() {
         KeyData(",", "<", KeyboardSender.KEY_COMMA, KeyboardSender.MODIFIER_SHIFT_LEFT),
         KeyData(".", ">", KeyboardSender.KEY_PERIOD, KeyboardSender.MODIFIER_SHIFT_LEFT),
         KeyData("/", "?", KeyboardSender.KEY_SLASH, KeyboardSender.MODIFIER_SHIFT_LEFT),
-        KeyData("Shift", "", 0, type = KeyType.MODIFIER, modifierBit = KeyboardSender.MODIFIER_SHIFT_LEFT, weight = 1.8f)
+        KeyData("Shift", "", 0, type = KeyType.MODIFIER, modifierBit = KeyboardSender.MODIFIER_SHIFT_RIGHT, weight = 1.8f)
     )
 
     private val row4Keys = listOf(
@@ -217,30 +220,107 @@ class KeyboardFragment : Fragment() {
             params.setMargins(margin, 0, margin, 0)
             button.layoutParams = params
 
-            // Set click listener
-            button.setOnClickListener { onKeyPressed(keyData, button) }
-
-            // Caps Lock long press for toggle
-            if (keyData.primaryLabel == "Caps") {
-                button.setOnTouchListener { v, event ->
-                    when (event.action) {
-                        MotionEvent.ACTION_DOWN -> {
-                            handler.postDelayed({
-                                toggleCapsLock(button)
-                            }, 500)
-                            v.isPressed = true
-                            true
-                        }
-                        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                            handler.removeCallbacksAndMessages(null)
-                            if (event.action == MotionEvent.ACTION_UP && event.eventTime - event.downTime < 500) {
-                                // Short press: send Esc
-                                onKeyPressed(keyData, button)
+            when {
+                // Caps: long press toggles caps lock, short press sends Esc
+                keyData.primaryLabel == "Caps" -> {
+                    button.setOnTouchListener { v, event ->
+                        when (event.action) {
+                            MotionEvent.ACTION_DOWN -> {
+                                handler.postDelayed({ toggleCapsLock(button) }, 500)
+                                v.isPressed = true
+                                true
                             }
-                            v.isPressed = false
-                            true
+                            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                                handler.removeCallbacksAndMessages(null)
+                                if (event.action == MotionEvent.ACTION_UP && event.eventTime - event.downTime < 500) {
+                                    onKeyPressed(keyData, button)
+                                }
+                                v.isPressed = false
+                                true
+                            }
+                            else -> false
                         }
-                        else -> false
+                    }
+                }
+                // Modifier keys: touch to toggle with press feedback
+                keyData.type == KeyType.MODIFIER -> {
+                    button.setOnTouchListener { v, event ->
+                        when (event.action) {
+                            MotionEvent.ACTION_DOWN -> {
+                                button.setBackgroundResource(R.drawable.bg_key_pressed)
+                                v.isPressed = true
+                                true
+                            }
+                            MotionEvent.ACTION_UP -> {
+                                v.isPressed = false
+                                onKeyPressed(keyData, button)
+                                true
+                            }
+                            MotionEvent.ACTION_CANCEL -> {
+                                v.isPressed = false
+                                updateModifierVisuals()
+                                true
+                            }
+                            else -> false
+                        }
+                    }
+                }
+                // Normal and Special keys: touch for press feedback + long-press repeat
+                else -> {
+                    button.setOnTouchListener { v, event ->
+                        when (event.action) {
+                            MotionEvent.ACTION_DOWN -> {
+                                isKeyPressed = true
+                                button.setBackgroundResource(R.drawable.bg_key_pressed)
+                                v.isPressed = true
+
+                                // Build modifier once for this press and all repeats
+                                val effectiveModifier = when {
+                                    isShiftActive -> KeyboardSender.MODIFIER_SHIFT_LEFT
+                                    isSymbolLock && keyData.shiftLabel.isNotEmpty() -> KeyboardSender.MODIFIER_SHIFT_LEFT
+                                    isCapsLock && keyData.type == KeyType.NORMAL && keyData.primaryLabel[0].isLetter() -> KeyboardSender.MODIFIER_SHIFT_LEFT
+                                    else -> 0x00
+                                }
+                                val combinedModifier = (effectiveModifier.toInt() or buildModifierByte().toInt()).toByte()
+                                val sender = getKeyboardSender()
+
+                                if (sender != null) {
+                                    // Send initial keypress
+                                    Thread {
+                                        sender.sendKeyPress(combinedModifier, keyData.hidKeyCode)
+                                    }.start()
+
+                                    // Auto-release shift after key press (one-shot)
+                                    if (isShiftActive) {
+                                        isShiftActive = false
+                                        updateModifierVisuals()
+                                        updateAllKeyLabels()
+                                    }
+
+                                    // Start long-press repeat
+                                    repeatRunnable = object : Runnable {
+                                        override fun run() {
+                                            if (!isKeyPressed) return
+                                            Thread {
+                                                sender.sendKeyPress(combinedModifier, keyData.hidKeyCode)
+                                            }.start()
+                                            handler.postDelayed(this, 50)
+                                        }
+                                    }
+                                    handler.postDelayed(repeatRunnable!!, 400)
+                                }
+                                true
+                            }
+                            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                                isKeyPressed = false
+                                repeatRunnable?.let { handler.removeCallbacks(it) }
+                                repeatRunnable = null
+                                button.setBackgroundResource(R.drawable.bg_key_normal)
+                                v.isPressed = false
+                                true
+                            }
+                            else -> false
+                        }
                     }
                 }
             }
@@ -265,22 +345,9 @@ class KeyboardFragment : Fragment() {
             isFocusable = false
         }
 
-        // Set text appearance based on key type
-        when (keyData.type) {
-            KeyType.MODIFIER -> {
-                button.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize)
-                button.setTextColor(resolveAttrColor(com.google.android.material.R.attr.colorOnSurface))
-            }
-            KeyType.SPECIAL -> {
-                button.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize)
-                button.setTextColor(resolveAttrColor(com.google.android.material.R.attr.colorOnSurface))
-            }
-            KeyType.NORMAL -> {
-                // For normal keys with shift labels, use a spannable or just show primary
-                button.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize)
-                button.setTextColor(resolveAttrColor(com.google.android.material.R.attr.colorOnSurface))
-            }
-        }
+        // Set text appearance
+        button.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize)
+        button.setTextColor(resolveAttrColor(com.google.android.material.R.attr.colorOnSurface))
 
         // Set label
         updateKeyLabel(button, keyData, shiftTextSize)
@@ -299,8 +366,7 @@ class KeyboardFragment : Fragment() {
      */
     private fun updateKeyLabel(button: TextView, keyData: KeyData, shiftTextSize: Float) {
         if (keyData.type == KeyType.NORMAL && keyData.shiftLabel.isNotEmpty()) {
-            // Show both primary and shift label
-            val displayLabel = if (isShiftActive || isCapsLock) {
+            val displayLabel = if (isShiftActive || isSymbolLock || isCapsLock) {
                 keyData.shiftLabel
             } else {
                 keyData.primaryLabel
@@ -316,13 +382,10 @@ class KeyboardFragment : Fragment() {
      */
     private fun registerModifierButton(keyData: KeyData, button: TextView) {
         when (keyData.modifierBit) {
-            KeyboardSender.MODIFIER_SHIFT_LEFT, KeyboardSender.MODIFIER_SHIFT_RIGHT -> {
-                shiftButtons.add(button)
-            }
+            KeyboardSender.MODIFIER_SHIFT_LEFT -> leftShiftButtons.add(button)
+            KeyboardSender.MODIFIER_SHIFT_RIGHT -> rightShiftButtons.add(button)
             KeyboardSender.MODIFIER_CTRL_LEFT, KeyboardSender.MODIFIER_CTRL_RIGHT -> {
-                // Store both ctrl buttons
-                if (ctrlButton == null) ctrlButton = button
-                // We'll update both via the modifier state
+                ctrlButtons.add(button)
             }
             KeyboardSender.MODIFIER_ALT_LEFT -> altLeftButton = button
             KeyboardSender.MODIFIER_ALT_RIGHT -> altRightButton = button
@@ -343,16 +406,15 @@ class KeyboardFragment : Fragment() {
                 return
             }
             KeyType.SPECIAL -> {
-                // Special keys: send with current modifiers
                 val modifier = buildModifierByte()
                 Thread { sender.sendKeyPress(modifier, keyData.hidKeyCode) }.start()
             }
             KeyType.NORMAL -> {
-                // Normal keys: determine if we need shift
                 val effectiveModifier = when {
                     isShiftActive -> KeyboardSender.MODIFIER_SHIFT_LEFT
+                    isSymbolLock && keyData.shiftLabel.isNotEmpty() -> KeyboardSender.MODIFIER_SHIFT_LEFT
                     isCapsLock && keyData.primaryLabel[0].isLetter() -> KeyboardSender.MODIFIER_SHIFT_LEFT
-                    else -> keyData.hidModifier
+                    else -> 0x00
                 }
                 val combinedModifier = (effectiveModifier.toInt() or buildModifierByte().toInt()).toByte()
                 Thread { sender.sendKeyPress(combinedModifier, keyData.hidKeyCode) }.start()
@@ -365,20 +427,6 @@ class KeyboardFragment : Fragment() {
             updateModifierVisuals()
             updateAllKeyLabels()
         }
-
-        // Auto-release other modifiers after key press (one-shot behavior)
-        if (isCtrlActive) {
-            isCtrlActive = false
-            updateModifierVisuals()
-        }
-        if (isAltActive) {
-            isAltActive = false
-            updateModifierVisuals()
-        }
-        if (isWinActive) {
-            isWinActive = false
-            updateModifierVisuals()
-        }
     }
 
     /**
@@ -386,8 +434,11 @@ class KeyboardFragment : Fragment() {
      */
     private fun toggleModifier(modifierBit: Byte) {
         when (modifierBit) {
-            KeyboardSender.MODIFIER_SHIFT_LEFT, KeyboardSender.MODIFIER_SHIFT_RIGHT -> {
+            KeyboardSender.MODIFIER_SHIFT_LEFT -> {
                 isShiftActive = !isShiftActive
+            }
+            KeyboardSender.MODIFIER_SHIFT_RIGHT -> {
+                isSymbolLock = !isSymbolLock
             }
             KeyboardSender.MODIFIER_CTRL_LEFT, KeyboardSender.MODIFIER_CTRL_RIGHT -> {
                 isCtrlActive = !isCtrlActive
@@ -397,6 +448,13 @@ class KeyboardFragment : Fragment() {
             }
             KeyboardSender.MODIFIER_GUI_LEFT, KeyboardSender.MODIFIER_GUI_RIGHT -> {
                 isWinActive = !isWinActive
+                // Send standalone Win keypress when toggled on
+                if (isWinActive) {
+                    val sender = getKeyboardSender()
+                    if (sender != null) {
+                        Thread { sender.sendKeyPress(KeyboardSender.MODIFIER_GUI_LEFT, 0x00) }.start()
+                    }
+                }
             }
         }
         updateModifierVisuals()
@@ -419,6 +477,7 @@ class KeyboardFragment : Fragment() {
         var modifier: Byte = 0
         if (isCtrlActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_CTRL_LEFT.toInt()).toByte()
         if (isShiftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_SHIFT_LEFT.toInt()).toByte()
+        if (isSymbolLock) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_SHIFT_LEFT.toInt()).toByte()
         if (isAltActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_ALT_LEFT.toInt()).toByte()
         if (isWinActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_GUI_LEFT.toInt()).toByte()
         return modifier
@@ -431,51 +490,53 @@ class KeyboardFragment : Fragment() {
         val activeBg = R.drawable.bg_key_modifier_active
         val normalBg = R.drawable.bg_key_normal
 
-        // Shift buttons
-        for (btn in shiftButtons) {
+        val activeTextColor = resolveAttrColor(com.google.android.material.R.attr.colorOnPrimary)
+        val normalTextColor = resolveAttrColor(com.google.android.material.R.attr.colorOnSurface)
+
+        // Left Shift buttons (one-shot modifier)
+        for (btn in leftShiftButtons) {
             btn.setBackgroundResource(if (isShiftActive) activeBg else normalBg)
-            btn.setTextColor(if (isShiftActive) resolveAttrColor(com.google.android.material.R.attr.colorOnPrimary)
-            else resolveAttrColor(com.google.android.material.R.attr.colorOnSurface))
+            btn.setTextColor(if (isShiftActive) activeTextColor else normalTextColor)
+        }
+
+        // Right Shift buttons (symbol lock toggle)
+        for (btn in rightShiftButtons) {
+            btn.setBackgroundResource(if (isSymbolLock) activeBg else normalBg)
+            btn.setTextColor(if (isSymbolLock) activeTextColor else normalTextColor)
         }
 
         // Caps lock button
         allKeyButtons.forEach { (btn, data) ->
             if (data.primaryLabel == "Caps") {
                 btn.setBackgroundResource(if (isCapsLock) activeBg else normalBg)
-                btn.setTextColor(if (isCapsLock) resolveAttrColor(com.google.android.material.R.attr.colorOnPrimary)
-                else resolveAttrColor(com.google.android.material.R.attr.colorOnSurface))
+                btn.setTextColor(if (isCapsLock) activeTextColor else normalTextColor)
             }
         }
 
         // Ctrl buttons
-        ctrlButton?.let {
-            it.setBackgroundResource(if (isCtrlActive) activeBg else normalBg)
-            it.setTextColor(if (isCtrlActive) resolveAttrColor(com.google.android.material.R.attr.colorOnPrimary)
-            else resolveAttrColor(com.google.android.material.R.attr.colorOnSurface))
+        for (btn in ctrlButtons) {
+            btn.setBackgroundResource(if (isCtrlActive) activeBg else normalBg)
+            btn.setTextColor(if (isCtrlActive) activeTextColor else normalTextColor)
         }
 
         // Alt buttons
         altLeftButton?.let {
             it.setBackgroundResource(if (isAltActive) activeBg else normalBg)
-            it.setTextColor(if (isAltActive) resolveAttrColor(com.google.android.material.R.attr.colorOnPrimary)
-            else resolveAttrColor(com.google.android.material.R.attr.colorOnSurface))
+            it.setTextColor(if (isAltActive) activeTextColor else normalTextColor)
         }
         altRightButton?.let {
             it.setBackgroundResource(if (isAltActive) activeBg else normalBg)
-            it.setTextColor(if (isAltActive) resolveAttrColor(com.google.android.material.R.attr.colorOnPrimary)
-            else resolveAttrColor(com.google.android.material.R.attr.colorOnSurface))
+            it.setTextColor(if (isAltActive) activeTextColor else normalTextColor)
         }
 
         // Win buttons
         winLeftButton?.let {
             it.setBackgroundResource(if (isWinActive) activeBg else normalBg)
-            it.setTextColor(if (isWinActive) resolveAttrColor(com.google.android.material.R.attr.colorOnPrimary)
-            else resolveAttrColor(com.google.android.material.R.attr.colorOnSurface))
+            it.setTextColor(if (isWinActive) activeTextColor else normalTextColor)
         }
         winRightButton?.let {
             it.setBackgroundResource(if (isWinActive) activeBg else normalBg)
-            it.setTextColor(if (isWinActive) resolveAttrColor(com.google.android.material.R.attr.colorOnPrimary)
-            else resolveAttrColor(com.google.android.material.R.attr.colorOnSurface))
+            it.setTextColor(if (isWinActive) activeTextColor else normalTextColor)
         }
     }
 
