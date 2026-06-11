@@ -28,7 +28,6 @@ class KeyboardFragment : Fragment() {
     private var isAltLeftActive = false    // Left Alt: toggle, hold for combos
     private var isWinLeftActive = false   // Left Win: one-shot, sends standalone Win keypress
     private var isWinRightActive = false  // Right Win: toggle only, for combos like Win+R
-    private var isCapsLock = false
     private var isSymbolLock = false  // Right Shift: toggle symbol mode for number/punctuation keys
 
     // Modifier button references for visual state updates
@@ -222,27 +221,6 @@ class KeyboardFragment : Fragment() {
             button.layoutParams = params
 
             when {
-                // Caps: long press toggles caps lock, short press sends Esc
-                keyData.primaryLabel == "Caps" -> {
-                    button.setOnTouchListener { v, event ->
-                        when (event.action) {
-                            MotionEvent.ACTION_DOWN -> {
-                                handler.postDelayed({ toggleCapsLock(button) }, 500)
-                                v.isPressed = true
-                                true
-                            }
-                            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                                handler.removeCallbacksAndMessages(null)
-                                if (event.action == MotionEvent.ACTION_UP && event.eventTime - event.downTime < 500) {
-                                    onKeyPressed(keyData, button)
-                                }
-                                v.isPressed = false
-                                true
-                            }
-                            else -> false
-                        }
-                    }
-                }
                 // Modifier keys: touch to toggle with press feedback
                 keyData.type == KeyType.MODIFIER -> {
                     button.setOnTouchListener { v, event ->
@@ -279,7 +257,6 @@ class KeyboardFragment : Fragment() {
                                 // Build modifier once for this press and all repeats
                                 val effectiveModifier = when {
                                     isSymbolLock && keyData.shiftLabel.isNotEmpty() -> KeyboardSender.MODIFIER_SHIFT_LEFT
-                                    isCapsLock && keyData.type == KeyType.NORMAL && keyData.primaryLabel[0].isLetter() -> KeyboardSender.MODIFIER_SHIFT_LEFT
                                     else -> 0x00
                                 }
                                 val combinedModifier = (effectiveModifier.toInt() or buildModifierByte().toInt()).toByte()
@@ -360,7 +337,7 @@ class KeyboardFragment : Fragment() {
      */
     private fun updateKeyLabel(button: TextView, keyData: KeyData, shiftTextSize: Float) {
         if (keyData.type == KeyType.NORMAL && keyData.shiftLabel.isNotEmpty()) {
-            val displayLabel = if (isSymbolLock || isCapsLock) {
+            val displayLabel = if (isSymbolLock) {
                 keyData.shiftLabel
             } else {
                 keyData.primaryLabel
@@ -405,7 +382,6 @@ class KeyboardFragment : Fragment() {
             KeyType.NORMAL -> {
                 val effectiveModifier = when {
                     isSymbolLock && keyData.shiftLabel.isNotEmpty() -> KeyboardSender.MODIFIER_SHIFT_LEFT
-                    isCapsLock && keyData.primaryLabel[0].isLetter() -> KeyboardSender.MODIFIER_SHIFT_LEFT
                     else -> 0x00
                 }
                 val combinedModifier = (effectiveModifier.toInt() or buildModifierByte().toInt()).toByte()
@@ -466,15 +442,6 @@ class KeyboardFragment : Fragment() {
     }
 
     /**
-     * Toggle caps lock state (called on long press of Caps key).
-     */
-    private fun toggleCapsLock(button: TextView) {
-        isCapsLock = !isCapsLock
-        updateModifierVisuals()
-        updateAllKeyLabels()
-    }
-
-    /**
      * Build the current modifier byte from active modifier states.
      */
     private fun buildModifierByte(): Byte {
@@ -507,14 +474,6 @@ class KeyboardFragment : Fragment() {
         for (btn in rightShiftButtons) {
             btn.setBackgroundResource(if (isSymbolLock) activeBg else normalBg)
             btn.setTextColor(if (isSymbolLock) activeTextColor else normalTextColor)
-        }
-
-        // Caps lock button
-        allKeyButtons.forEach { (btn, data) ->
-            if (data.primaryLabel == "Caps") {
-                btn.setBackgroundResource(if (isCapsLock) activeBg else normalBg)
-                btn.setTextColor(if (isCapsLock) activeTextColor else normalTextColor)
-            }
         }
 
         // Ctrl buttons (left = toggle, right = fire-and-forget)
