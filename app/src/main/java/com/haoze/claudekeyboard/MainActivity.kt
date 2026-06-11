@@ -27,6 +27,8 @@ import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.haoze.claudekeyboard.bluetooth.BluetoothHidService
 import com.haoze.claudekeyboard.bluetooth.KeyboardSender
+import com.haoze.claudekeyboard.bluetooth.MouseSender
+import com.haoze.claudekeyboard.ui.touchpad.TouchpadFragment
 import com.haoze.claudekeyboard.macro.Macro
 import com.haoze.claudekeyboard.macro.MacroRepository
 import com.haoze.claudekeyboard.ui.device.DeviceListBottomSheetFragment
@@ -63,6 +65,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var contentClaude: View
     private lateinit var contentKeyboard: View
     private var keyboardFragment: KeyboardFragment? = null
+    private lateinit var contentTouchpad: View
+    private var touchpadFragment: TouchpadFragment? = null
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -165,6 +169,7 @@ class MainActivity : AppCompatActivity() {
         bottomNav = findViewById(R.id.bottom_nav)
         contentClaude = findViewById(R.id.content_claude)
         contentKeyboard = findViewById(R.id.content_keyboard)
+        contentTouchpad = findViewById(R.id.content_touchpad)
 
         tvDeviceAction.setOnClickListener {
             it.performKeyClick()
@@ -192,6 +197,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_claude -> {
                     contentClaude.visibility = View.VISIBLE
                     contentKeyboard.visibility = View.GONE
+                    contentTouchpad.visibility = View.GONE
                     if (isFirstLoad) {
                         // First load: show immediately
                         isFirstLoad = false
@@ -208,9 +214,21 @@ class MainActivity : AppCompatActivity() {
                     }
                     true
                 }
+                R.id.nav_touchpad -> {
+                    contentClaude.visibility = View.GONE
+                    contentKeyboard.visibility = View.GONE
+                    contentTouchpad.visibility = View.VISIBLE
+                    bottomNav.visibility = View.GONE
+                    dividerAboveNav.visibility = View.GONE
+                    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                    touchpadFragment = supportFragmentManager.findFragmentById(R.id.touchpad_fragment_container) as? TouchpadFragment
+                    updateTouchpadEnabled()
+                    true
+                }
                 R.id.nav_keyboard -> {
                     contentClaude.visibility = View.GONE
                     contentKeyboard.visibility = View.VISIBLE
+                    contentTouchpad.visibility = View.GONE
                     // Hide bottom nav for keyboard tab
                     bottomNav.visibility = View.GONE
                     dividerAboveNav.visibility = View.GONE
@@ -236,6 +254,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
+     * Get the MouseSender for use by TouchpadFragment.
+     */
+    fun getMouseSender(): MouseSender? {
+        return hidService?.getMouseSender()
+    }
+
+    /**
      * Switch to Claude tab programmatically (called from KeyboardFragment).
      */
     fun switchToClaudeTab() {
@@ -254,6 +279,14 @@ class MainActivity : AppCompatActivity() {
         divider.alpha = 0f
         nav.animate().translationY(0f).alpha(1f).setDuration(250).start()
         divider.animate().translationY(0f).alpha(1f).setDuration(250).start()
+    }
+
+    /**
+     * Update touchpad fragment enabled state based on connection.
+     */
+    private fun updateTouchpadEnabled() {
+        val isConnected = hidService?.isConnected() == true
+        touchpadFragment?.setTouchpadEnabled(isConnected)
     }
 
     /**
@@ -382,6 +415,7 @@ class MainActivity : AppCompatActivity() {
         }
         // Update keyboard fragment enabled state
         updateKeyboardEnabled()
+        updateTouchpadEnabled()
     }
 
     private fun enableAllButtons() {
