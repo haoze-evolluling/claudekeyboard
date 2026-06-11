@@ -124,6 +124,16 @@ open class KeyboardSender(
         sendKeyPress(0x00, KEY_ENTER)
     }
 
+    /**
+     * Send a key press with combined modifier byte, then release.
+     * @param modifiers Combined modifier byte (e.g., MODIFIER_CTRL_LEFT or MODIFIER_SHIFT_LEFT)
+     * @param keyCode HID key code
+     * @param delayMs Delay between press and release
+     */
+    fun sendModifierCombo(modifiers: Byte, keyCode: Byte, delayMs: Long = 30) {
+        sendKeyPress(modifiers, keyCode, delayMs)
+    }
+
     companion object {
         const val TAG = "KeyboardSender"
 
@@ -135,14 +145,51 @@ open class KeyboardSender(
         const val MODIFIER_CTRL_RIGHT: Byte = 0x10
         const val MODIFIER_SHIFT_RIGHT: Byte = 0x20
         const val MODIFIER_ALT_RIGHT: Byte = 0x40
+        const val MODIFIER_GUI_RIGHT: Byte = 0x80.toByte()
 
         // Common HID key codes
         const val KEY_A: Byte = 0x04
+        const val KEY_B: Byte = 0x05
         const val KEY_C: Byte = 0x06
+        const val KEY_D: Byte = 0x07
+        const val KEY_E: Byte = 0x08
+        const val KEY_F: Byte = 0x09
+        const val KEY_G: Byte = 0x0A
+        const val KEY_H: Byte = 0x0B
+        const val KEY_I: Byte = 0x0C
+        const val KEY_J: Byte = 0x0D
+        const val KEY_K: Byte = 0x0E
+        const val KEY_L: Byte = 0x0F
+        const val KEY_M: Byte = 0x10
         const val KEY_N: Byte = 0x11
+        const val KEY_O: Byte = 0x12
+        const val KEY_P: Byte = 0x13
+        const val KEY_Q: Byte = 0x14
+        const val KEY_R: Byte = 0x15
+        const val KEY_S: Byte = 0x16
+        const val KEY_T: Byte = 0x17
+        const val KEY_U: Byte = 0x18
+        const val KEY_V: Byte = 0x19
+        const val KEY_W: Byte = 0x1A
+        const val KEY_X: Byte = 0x1B
         const val KEY_Y: Byte = 0x1C
+        const val KEY_Z: Byte = 0x1D
+
+        const val KEY_1: Byte = 0x1E
+        const val KEY_2: Byte = 0x1F
+        const val KEY_3: Byte = 0x20
+        const val KEY_4: Byte = 0x21
+        const val KEY_5: Byte = 0x22
+        const val KEY_6: Byte = 0x23
+        const val KEY_7: Byte = 0x24
+        const val KEY_8: Byte = 0x25
+        const val KEY_9: Byte = 0x26
+        const val KEY_0: Byte = 0x27
+
         const val KEY_ENTER: Byte = 0x28
+        const val KEY_ESC: Byte = 0x29
         const val KEY_BACKSPACE: Byte = 0x2A
+        const val KEY_TAB: Byte = 0x2B
         const val KEY_SPACE: Byte = 0x2C
         const val KEY_MINUS: Byte = 0x2D
         const val KEY_EQUAL: Byte = 0x2E
@@ -155,6 +202,13 @@ open class KeyboardSender(
         const val KEY_COMMA: Byte = 0x36
         const val KEY_PERIOD: Byte = 0x37
         const val KEY_SLASH: Byte = 0x38
+        const val KEY_CAPS_LOCK: Byte = 0x39
+
+        // Arrow keys
+        const val KEY_RIGHT: Byte = 0x4F
+        const val KEY_LEFT: Byte = 0x50
+        const val KEY_DOWN: Byte = 0x51
+        const val KEY_UP: Byte = 0x52
 
         /**
          * Convert a character to (modifier, hidKeyCode) pair.

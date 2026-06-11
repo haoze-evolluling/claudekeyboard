@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.ActivityInfo
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
@@ -29,6 +30,7 @@ import com.haoze.claudekeyboard.bluetooth.KeyboardSender
 import com.haoze.claudekeyboard.macro.Macro
 import com.haoze.claudekeyboard.macro.MacroRepository
 import com.haoze.claudekeyboard.ui.device.DeviceListBottomSheetFragment
+import com.haoze.claudekeyboard.ui.keyboard.KeyboardFragment
 import com.haoze.claudekeyboard.ui.macro.MacroButtonAdapter
 import com.haoze.claudekeyboard.ui.macro.MacroEditDialogFragment
 import com.haoze.claudekeyboard.util.Constants
@@ -59,6 +61,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bottomNav: BottomNavigationView
     private lateinit var contentClaude: View
     private lateinit var contentKeyboard: View
+    private var keyboardFragment: KeyboardFragment? = null
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -174,16 +177,32 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
+        // Divider above bottom nav
+        val dividerAboveNav = findViewById<View>(R.id.divider_above_nav)
+
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_claude -> {
                     contentClaude.visibility = View.VISIBLE
                     contentKeyboard.visibility = View.GONE
+                    // Show bottom nav for Claude tab
+                    bottomNav.visibility = View.VISIBLE
+                    dividerAboveNav.visibility = View.VISIBLE
+                    // Switch back to portrait for Claude tab
+                    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                     true
                 }
                 R.id.nav_keyboard -> {
                     contentClaude.visibility = View.GONE
                     contentKeyboard.visibility = View.VISIBLE
+                    // Hide bottom nav for keyboard tab
+                    bottomNav.visibility = View.GONE
+                    dividerAboveNav.visibility = View.GONE
+                    // Switch to landscape for keyboard tab
+                    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                    // Find keyboard fragment
+                    keyboardFragment = supportFragmentManager.findFragmentById(R.id.keyboard_fragment_container) as? KeyboardFragment
+                    updateKeyboardEnabled()
                     true
                 }
                 else -> false
@@ -191,6 +210,28 @@ class MainActivity : AppCompatActivity() {
         }
         // Default: Claude tab selected
         bottomNav.selectedItemId = R.id.nav_claude
+    }
+
+    /**
+     * Get the KeyboardSender for use by KeyboardFragment.
+     */
+    fun getKeyboardSender(): KeyboardSender? {
+        return hidService?.getKeyboardSender()
+    }
+
+    /**
+     * Switch to Claude tab programmatically (called from KeyboardFragment).
+     */
+    fun switchToClaudeTab() {
+        bottomNav.selectedItemId = R.id.nav_claude
+    }
+
+    /**
+     * Update keyboard fragment enabled state based on connection.
+     */
+    private fun updateKeyboardEnabled() {
+        val isConnected = hidService?.isConnected() == true
+        keyboardFragment?.setKeyboardEnabled(isConnected)
     }
 
     private fun setupCoreButtons() {
@@ -300,6 +341,8 @@ class MainActivity : AppCompatActivity() {
             tvDeviceAction.text = getString(R.string.connect_device)
             disableAllButtons()
         }
+        // Update keyboard fragment enabled state
+        updateKeyboardEnabled()
     }
 
     private fun enableAllButtons() {
