@@ -179,21 +179,27 @@ class MainActivity : AppCompatActivity() {
     private fun setupBottomNavigation() {
         // Divider above bottom nav
         val dividerAboveNav = findViewById<View>(R.id.divider_above_nav)
+        var isFirstLoad = true
 
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_claude -> {
                     contentClaude.visibility = View.VISIBLE
                     contentKeyboard.visibility = View.GONE
-                    // Hide bottom nav until rotation animation completes
-                    bottomNav.visibility = View.INVISIBLE
-                    dividerAboveNav.visibility = View.INVISIBLE
-                    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                    // Delay until rotation animation is fully done
-                    bottomNav.postDelayed({
+                    if (isFirstLoad) {
+                        // First load: show immediately
+                        isFirstLoad = false
                         bottomNav.visibility = View.VISIBLE
                         dividerAboveNav.visibility = View.VISIBLE
-                    }, 1000)
+                    } else {
+                        // Returning from keyboard: hide, rotate, then animate in
+                        bottomNav.visibility = View.INVISIBLE
+                        dividerAboveNav.visibility = View.INVISIBLE
+                        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                        bottomNav.postDelayed({
+                            animateBottomNavIn(bottomNav, dividerAboveNav)
+                        }, 800)
+                    }
                     true
                 }
                 R.id.nav_keyboard -> {
@@ -228,6 +234,20 @@ class MainActivity : AppCompatActivity() {
      */
     fun switchToClaudeTab() {
         bottomNav.selectedItemId = R.id.nav_claude
+    }
+
+    /**
+     * Animate bottom nav sliding up with fade-in.
+     */
+    private fun animateBottomNavIn(nav: View, divider: View) {
+        nav.visibility = View.VISIBLE
+        divider.visibility = View.VISIBLE
+        nav.translationY = nav.height.toFloat()
+        nav.alpha = 0f
+        divider.translationY = divider.height.toFloat()
+        divider.alpha = 0f
+        nav.animate().translationY(0f).alpha(1f).setDuration(250).start()
+        divider.animate().translationY(0f).alpha(1f).setDuration(250).start()
     }
 
     /**
