@@ -53,7 +53,7 @@ object DescriptorCollection {
      * Combined keyboard + mouse HID descriptor.
      * Two TLCs with Report IDs:
      *   - Keyboard: Report ID 1, 8 bytes [modifier + reserved + keys(6)]
-     *   - Mouse:    Report ID 2, 4 bytes [buttons + X + Y + wheel]
+     *   - Mouse:    Report ID 2, 5 bytes [buttons + X + Y + wheel + AC Pan]
      */
     val COMBINED = byteArrayOf(
         // ---- Keyboard TLC (Report ID 1) ----
@@ -130,6 +130,15 @@ object DescriptorCollection {
 
         // Wheel
         0x09.toByte(), 0x38.toByte(),  //         Usage (Wheel)
+        0x15.toByte(), 0x81.toByte(),  //         Logical Minimum (-127)
+        0x25.toByte(), 0x7F.toByte(),  //         Logical Maximum (127)
+        0x75.toByte(), 0x08.toByte(),  //         Report Size (8)
+        0x95.toByte(), 0x01.toByte(),  //         Report Count (1)
+        0x81.toByte(), 0x06.toByte(),  //         Input (Data, Variable, Relative)
+
+        // AC Pan (horizontal scroll)
+        0x05.toByte(), 0x0C.toByte(),  //         Usage Page (Consumer)
+        0x0A.toByte(), 0x38.toByte(), 0x02.toByte(),  //         Usage (AC Pan)
         0x15.toByte(), 0x81.toByte(),  //         Logical Minimum (-127)
         0x25.toByte(), 0x7F.toByte(),  //         Logical Maximum (127)
         0x75.toByte(), 0x08.toByte(),  //         Report Size (8)
