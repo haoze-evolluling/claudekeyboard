@@ -52,6 +52,7 @@ class BluetoothHidService : Service() {
 
     // Keyboard sender (created on connection)
     private var keyboardSender: KeyboardSender? = null
+    private var mouseSender: MouseSender? = null
 
     // Callbacks
     private var onConnectionStateChanged: ((Boolean, String?) -> Unit)? = null
@@ -91,6 +92,7 @@ class BluetoothHidService : Service() {
                         registrationRetryCount = 0
                         connectedDevice = null
                         keyboardSender = null
+                        mouseSender = null
                         mainHandler.removeCallbacksAndMessages(null)
                         hidDevice?.let {
                             try { bluetoothAdapter?.closeProfileProxy(BluetoothProfile.HID_DEVICE, it) } catch (_: Exception) {}
@@ -109,6 +111,7 @@ class BluetoothHidService : Service() {
                         registrationRetryCount = 0
                         connectedDevice = null
                         keyboardSender = null
+                        mouseSender = null
                         hidDevice?.let {
                             bluetoothAdapter?.closeProfileProxy(BluetoothProfile.HID_DEVICE, it)
                         }
@@ -196,6 +199,11 @@ class BluetoothHidService : Service() {
     fun getKeyboardSender(): KeyboardSender? = keyboardSender
 
     /**
+     * Get the mouse sender. Null if not connected.
+     */
+    fun getMouseSender(): MouseSender? = mouseSender
+
+    /**
      * Initialize the HID device profile proxy.
      */
     private fun initializeHidDevice() {
@@ -247,7 +255,7 @@ class BluetoothHidService : Service() {
             "Claude Code Bluetooth HID Keyboard",
             "Claude Code",
             BluetoothHidDevice.SUBCLASS1_KEYBOARD,
-            DescriptorCollection.KEYBOARD
+            DescriptorCollection.COMBINED
         )
 
         val executor = Executors.newSingleThreadExecutor()
@@ -286,6 +294,7 @@ class BluetoothHidService : Service() {
 
                         // Create KeyboardSender for the connected device
                         keyboardSender = KeyboardSender(hidDevice, device!!)
+                        mouseSender = MouseSender(hidDevice, device!!)
 
                         // Set connection policy to allow auto-reconnect (API 33+)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -308,6 +317,7 @@ class BluetoothHidService : Service() {
                         connectedDevice = null
                         isConnected = false
                         keyboardSender = null
+                        mouseSender = null
                         Log.d(TAG, "Disconnected")
                         updateNotification(getString(R.string.notification_waiting))
                         onConnectionStateChanged?.invoke(false, null)
