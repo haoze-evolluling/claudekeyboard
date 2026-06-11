@@ -185,15 +185,15 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_claude -> {
                     contentClaude.visibility = View.VISIBLE
                     contentKeyboard.visibility = View.GONE
-                    // Hide bottom nav first, then show after rotation layout settles
+                    // Hide bottom nav until rotation animation completes
                     bottomNav.visibility = View.INVISIBLE
                     dividerAboveNav.visibility = View.INVISIBLE
                     requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                    // Post to show after layout pass completes (rotation done)
-                    bottomNav.post {
+                    // Delay until rotation animation is fully done
+                    bottomNav.postDelayed({
                         bottomNav.visibility = View.VISIBLE
                         dividerAboveNav.visibility = View.VISIBLE
-                    }
+                    }, 300)
                     true
                 }
                 R.id.nav_keyboard -> {
