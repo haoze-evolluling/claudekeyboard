@@ -9,16 +9,17 @@ import android.os.Bundle
 import android.os.IBinder
 import android.view.View
 import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -26,8 +27,10 @@ import com.haoze.claudekeyboard.bluetooth.BluetoothHidService
 import com.haoze.claudekeyboard.bluetooth.KeyboardSender
 import com.haoze.claudekeyboard.macro.Macro
 import com.haoze.claudekeyboard.macro.MacroRepository
+import com.haoze.claudekeyboard.ui.device.DeviceListBottomSheetFragment
 import com.haoze.claudekeyboard.ui.macro.MacroButtonAdapter
 import com.haoze.claudekeyboard.ui.macro.MacroEditDialogFragment
+import com.haoze.claudekeyboard.util.Constants
 
 class MainActivity : AppCompatActivity() {
 
@@ -36,17 +39,20 @@ class MainActivity : AppCompatActivity() {
     private lateinit var macroRepository: MacroRepository
 
     // UI components
-    private lateinit var statusChip: Chip
-    private lateinit var btnDisconnect: MaterialButton
+    private lateinit var tvDeviceName: TextView
+    private lateinit var tvDeviceAction: TextView
     private lateinit var btnSettings: ImageButton
     private lateinit var btnYes: MaterialButton
     private lateinit var btnNo: MaterialButton
     private lateinit var btnCtrlC: MaterialButton
     private lateinit var btnYesToAll: MaterialButton
+    private lateinit var btnBackspace: MaterialButton
+    private lateinit var btnEnter: MaterialButton
     private lateinit var inputLayout: TextInputLayout
     private lateinit var inputText: TextInputEditText
     private lateinit var macroRecyclerView: RecyclerView
     private lateinit var macroAdapter: MacroButtonAdapter
+    private var deviceListDialog: DeviceListBottomSheetFragment? = null
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -64,6 +70,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        applyTheme()
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
@@ -82,6 +89,24 @@ class MainActivity : AppCompatActivity() {
         if (isBound) {
             unbindService(serviceConnection)
             isBound = false
+        }
+    }
+
+    private fun applyTheme() {
+        val prefs = getSharedPreferences(Constants.PREFS_NAME_SETTINGS, Context.MODE_PRIVATE)
+        val themeMode = prefs.getInt(Constants.KEY_THEME_MODE, Constants.THEME_FOLLOW_SYSTEM)
+        AppCompatDelegate.setDefaultNightMode(when (themeMode) {
+            Constants.THEME_LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
+            Constants.THEME_DARK -> AppCompatDelegate.MODE_NIGHT_YES
+            else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        })
+    }
+
+    private fun getThemeModeName(mode: Int): String {
+        return when (mode) {
+            Constants.THEME_LIGHT -> getString(R.string.theme_light)
+            Constants.THEME_DARK -> getString(R.string.theme_dark)
+            else -> getString(R.string.theme_follow_system)
         }
     }
 
@@ -106,23 +131,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
-        statusChip = findViewById(R.id.status_chip)
-        btnDisconnect = findViewById(R.id.btn_disconnect)
+        tvDeviceName = findViewById(R.id.tv_device_name)
+        tvDeviceAction = findViewById(R.id.tv_device_action)
         btnSettings = findViewById(R.id.btn_settings)
         btnYes = findViewById(R.id.btn_yes)
         btnNo = findViewById(R.id.btn_no)
         btnCtrlC = findViewById(R.id.btn_ctrl_c)
         btnYesToAll = findViewById(R.id.btn_yes_to_all)
+        btnBackspace = findViewById(R.id.btn_backspace)
+        btnEnter = findViewById(R.id.btn_enter)
         inputLayout = findViewById(R.id.til_input)
         inputText = findViewById(R.id.et_input_text)
         macroRecyclerView = findViewById(R.id.rv_macros)
 
-        btnDisconnect.setOnClickListener {
-            val service = hidService ?: return@setOnClickListener
-            if (service.isConnected()) {
+        tvDeviceAction.setOnClickListener {
+            val service = hidService
+            if (service != null && service.isConnected()) {
                 service.disconnect()
-            } else if (!service.connectToLastDevice()) {
-                Toast.makeText(this, R.string.toast_connect_failed, Toast.LENGTH_SHORT).show()
+            } else {
+                showDeviceListDialog()
             }
         }
         btnSettings.setOnClickListener { showSettingsDialog() }
@@ -130,23 +157,38 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupCoreButtons() {
         btnYes.setOnClickListener {
-            hidService?.getKeyboardSender()?.let { s -> Thread { s.sendText("y"); s.sendKeyPress(0x00, KeyboardSender.KEY_ENTER) }.start() }
+            hidService?.getKeyboardSender()?.let { s -> Thread { s.sendText("y") }.start() }
         }
         btnNo.setOnClickListener {
-            hidService?.getKeyboardSender()?.let { s -> Thread { s.sendText("n"); s.sendKeyPress(0x00, KeyboardSender.KEY_ENTER) }.start() }
+            hidService?.getKeyboardSender()?.let { s -> Thread { s.sendText("n") }.start() }
         }
         btnCtrlC.setOnClickListener {
             hidService?.getKeyboardSender()?.let { s -> Thread { s.sendKeyPress(KeyboardSender.MODIFIER_CTRL_LEFT, KeyboardSender.KEY_C) }.start() }
         }
         btnYesToAll.setOnClickListener {
-            hidService?.getKeyboardSender()?.let { s -> Thread { s.sendText("y!"); s.sendKeyPress(0x00, KeyboardSender.KEY_ENTER) }.start() }
+            hidService?.getKeyboardSender()?.let { s -> Thread { s.sendText("a") }.start() }
+        }
+        btnBackspace.setOnClickListener {
+            hidService?.getKeyboardSender()?.let { s -> Thread { s.sendKeyPress(0x00, KeyboardSender.KEY_BACKSPACE) }.start() }
+        }
+        btnEnter.setOnClickListener {
+            hidService?.getKeyboardSender()?.let { s -> Thread { s.sendKeyPress(0x00, KeyboardSender.KEY_ENTER) }.start() }
         }
     }
 
     private fun setupMacroRecyclerView() {
         macroAdapter = MacroButtonAdapter(
             onMacroClick = { macro ->
-                hidService?.getKeyboardSender()?.let { s -> Thread { s.sendMacro(macro.command) }.start() }
+                if (macro.id == "add_custom") {
+                    showAddMacroDialog()
+                } else {
+                    hidService?.getKeyboardSender()?.let { s ->
+                        Thread {
+                            if (macro.sendEnter) s.sendMacro(macro.command)
+                            else s.sendText(macro.command)
+                        }.start()
+                    }
+                }
             },
             onMacroLongClick = { macro ->
                 if (!macro.isPreset) showEditMacroDialog(macro)
@@ -188,7 +230,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupServiceCallbacks() {
         hidService?.setOnConnectionStateChangedListener { isConnected, deviceName ->
-            runOnUiThread { updateStatusUI(isConnected, deviceName) }
+            runOnUiThread {
+                updateStatusUI(isConnected, deviceName)
+                if (isConnected) {
+                    deviceListDialog?.onConnectionSuccess()
+                    deviceListDialog = null
+                }
+            }
         }
         hidService?.setOnRegistrationStateChangedListener { isRegistered ->
             runOnUiThread { if (!isRegistered) Toast.makeText(this, R.string.toast_bluetooth_not_supported, Toast.LENGTH_SHORT).show() }
@@ -198,27 +246,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateStatusUI(isConnected: Boolean, deviceName: String?) {
         if (isConnected) {
-            statusChip.text = getString(R.string.status_connected, deviceName ?: getString(R.string.status_unknown_device))
-            statusChip.setChipBackgroundColorResource(android.R.color.transparent)
-            statusChip.setTextColor(getColor(R.color.status_connected))
-            statusChip.setChipStrokeColorResource(R.color.primary)
-            statusChip.chipIconTint = getColorStateList(R.color.primary)
-            btnDisconnect.text = getString(R.string.settings_disconnect)
-            btnDisconnect.visibility = View.VISIBLE
+            val name = deviceName ?: getString(R.string.status_unknown_device)
+            tvDeviceName.text = getString(R.string.device_name_status, name, getString(R.string.status_connected_label))
+            tvDeviceName.setTextColor(getColor(R.color.status_connected))
+            tvDeviceAction.text = getString(R.string.disconnect_device)
             enableAllButtons()
         } else {
             val lastName = hidService?.getLastConnectedDeviceName()
             if (lastName != null) {
-                statusChip.text = getString(R.string.status_last_device, lastName)
+                tvDeviceName.text = getString(R.string.device_name_status, lastName, getString(R.string.status_disconnected_label))
             } else {
-                statusChip.text = getString(R.string.status_waiting)
+                tvDeviceName.text = ""
             }
-            statusChip.setChipBackgroundColorResource(android.R.color.transparent)
-            statusChip.setTextColor(getColor(R.color.status_waiting))
-            statusChip.setChipStrokeColorResource(R.color.outline)
-            statusChip.chipIconTint = getColorStateList(R.color.on_surface_variant)
-            btnDisconnect.text = getString(R.string.btn_connect)
-            btnDisconnect.visibility = if (hidService?.hasLastConnectedDevice() == true) View.VISIBLE else View.GONE
+            tvDeviceName.setTextColor(getColor(R.color.status_disconnected))
+            tvDeviceAction.text = getString(R.string.connect_device)
             disableAllButtons()
         }
     }
@@ -235,8 +276,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun showEditMacroDialog(macro: Macro) {
         val dialog = MacroEditDialogFragment.newInstance(macro)
-        dialog.setOnSaveListener { id, label, command ->
-            if (id != null) { macroRepository.updateCustomMacro(id, label, command); Toast.makeText(this, R.string.toast_macro_updated, Toast.LENGTH_SHORT).show() }
+        dialog.setOnSaveListener { id, label, command, sendEnter ->
+            if (id != null) { macroRepository.updateCustomMacro(id, label, command, sendEnter); Toast.makeText(this, R.string.toast_macro_updated, Toast.LENGTH_SHORT).show() }
             loadMacros()
         }
         dialog.setOnDeleteListener { id -> showDeleteConfirmationDialog(id) }
@@ -245,8 +286,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun showAddMacroDialog() {
         val dialog = MacroEditDialogFragment.newInstance()
-        dialog.setOnSaveListener { _, label, command ->
-            macroRepository.addCustomMacro(label, command)
+        dialog.setOnSaveListener { _, label, command, sendEnter ->
+            macroRepository.addCustomMacro(label, command, sendEnter)
             Toast.makeText(this, R.string.toast_macro_added, Toast.LENGTH_SHORT).show()
             loadMacros()
         }
@@ -267,16 +308,78 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showSettingsDialog() {
-        val options = arrayOf(getString(R.string.settings_disconnect), getString(R.string.settings_reset_macros))
+        val dialogView = layoutInflater.inflate(R.layout.dialog_settings, null)
+        val tvThemeValue = dialogView.findViewById<TextView>(R.id.tv_theme_value)
+        val llThemeMode = dialogView.findViewById<View>(R.id.ll_theme_mode)
+        val tvResetMacros = dialogView.findViewById<TextView>(R.id.tv_reset_macros)
+
+        val prefs = getSharedPreferences(Constants.PREFS_NAME_SETTINGS, Context.MODE_PRIVATE)
+        val currentTheme = prefs.getInt(Constants.KEY_THEME_MODE, Constants.THEME_FOLLOW_SYSTEM)
+        tvThemeValue.text = getThemeModeName(currentTheme)
+
+        llThemeMode.setOnClickListener {
+            showThemeSelectionDialog(tvThemeValue)
+        }
+
+        tvResetMacros.setOnClickListener {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.settings_reset_macros)
+                .setMessage(R.string.dialog_reset_macros_confirm)
+                .setPositiveButton(R.string.dialog_reset) { _, _ ->
+                    macroRepository.resetToDefaults()
+                    loadMacros()
+                }
+                .setNegativeButton(R.string.dialog_cancel, null)
+                .show()
+        }
+
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.settings_title)
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> hidService?.disconnect()
-                    1 -> { macroRepository.resetToDefaults(); loadMacros() }
-                }
+            .setView(dialogView)
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .show()
+    }
+
+    private fun showThemeSelectionDialog(tvThemeValue: TextView) {
+        val themes = arrayOf(
+            getString(R.string.theme_follow_system),
+            getString(R.string.theme_light),
+            getString(R.string.theme_dark)
+        )
+
+        val prefs = getSharedPreferences(Constants.PREFS_NAME_SETTINGS, Context.MODE_PRIVATE)
+        val currentTheme = prefs.getInt(Constants.KEY_THEME_MODE, Constants.THEME_FOLLOW_SYSTEM)
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.settings_theme_mode)
+            .setSingleChoiceItems(themes, currentTheme) { dialog, which ->
+                prefs.edit().putInt(Constants.KEY_THEME_MODE, which).apply()
+                tvThemeValue.text = themes[which]
+                AppCompatDelegate.setDefaultNightMode(when (which) {
+                    Constants.THEME_LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
+                    Constants.THEME_DARK -> AppCompatDelegate.MODE_NIGHT_YES
+                    else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                })
+                dialog.dismiss()
             }
             .setNegativeButton(R.string.dialog_cancel, null)
             .show()
+    }
+
+    private fun showDeviceListDialog() {
+        val service = hidService ?: return
+        val dialog = DeviceListBottomSheetFragment.newInstance(
+            connectedAddress = null,
+            lastConnectedAddress = service.getLastConnectedDeviceAddress()
+        )
+        dialog.setDeviceSelectionListener(object : DeviceListBottomSheetFragment.DeviceSelectionListener {
+            override fun onDeviceSelected(device: android.bluetooth.BluetoothDevice) {
+                Thread {
+                    service.connectToDevice(device.address)
+                }.start()
+            }
+        })
+        deviceListDialog = dialog
+        dialog.show(supportFragmentManager, "device_list")
     }
 }
