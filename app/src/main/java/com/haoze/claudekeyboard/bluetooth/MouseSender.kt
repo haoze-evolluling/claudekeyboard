@@ -85,6 +85,19 @@ class MouseSender(
         sendMouseReport()
     }
 
+    /**
+     * Send a horizontal mouse scroll event.
+     * @param hDelta Horizontal scroll amount (-127 to 127)
+     */
+    fun sendMouseHScroll(hDelta: Int) {
+        mouseReport.reset()
+        mouseReport.horizontalWheel = hDelta.coerceIn(-127, 127).toByte()
+        sendMouseReport()
+        // Clear
+        mouseReport.reset()
+        sendMouseReport()
+    }
+
     companion object {
         private const val TAG = "MouseSender"
     }
