@@ -4,13 +4,13 @@ import kotlin.experimental.and
 import kotlin.experimental.or
 
 /**
- * Inline class wrapping a 5-byte HID mouse report.
- * Report format: [reportId(1) + buttons(1) + deltaX(1) + deltaY(1) + wheel(1)]
+ * Inline class wrapping a 6-byte HID mouse report.
+ * Report format: [reportId(1) + buttons(1) + deltaX(1) + deltaY(1) + wheel(1) + horizontalWheel(1)]
  * Report ID = 2 in combined descriptor.
  */
 @JvmInline
 value class MouseReport(
-    val bytes: ByteArray = ByteArray(5) { 0 }
+    val bytes: ByteArray = ByteArray(6) { 0 }
 ) {
 
     init {
@@ -60,14 +60,19 @@ value class MouseReport(
         get() = bytes[4]
         set(value) { bytes[4] = value }
 
+    var horizontalWheel: Byte
+        get() = bytes[5]
+        set(value) { bytes[5] = value }
+
     /**
      * Reset all fields except Report ID to zero.
      */
     fun reset() {
-        bytes[1] = 0
-        bytes[2] = 0
-        bytes[3] = 0
-        bytes[4] = 0
+        bytes[1] = 0  // buttons
+        bytes[2] = 0  // deltaX
+        bytes[3] = 0  // deltaY
+        bytes[4] = 0  // wheel
+        bytes[5] = 0  // horizontalWheel
     }
 
     companion object {
