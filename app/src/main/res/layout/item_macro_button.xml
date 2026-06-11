@@ -4,7 +4,7 @@
     android:id="@+id/btn_macro"
     style="@style/Widget.Material3.Button.OutlinedButton"
     android:layout_width="match_parent"
-    android:layout_height="64dp"
+    android:layout_height="48dp"
     android:layout_margin="4dp"
     android:gravity="center"
     android:maxLines="2"

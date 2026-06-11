@@ -116,7 +116,7 @@
                     android:id="@+id/btn_yes"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="72dp"
+                    android:layout_height="48dp"
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:layout_rowWeight="1"
@@ -134,7 +134,7 @@
                     android:id="@+id/btn_yes_to_all"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="72dp"
+                    android:layout_height="48dp"
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:layout_rowWeight="1"
@@ -152,7 +152,7 @@
                     android:id="@+id/btn_no"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="72dp"
+                    android:layout_height="48dp"
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:layout_rowWeight="1"
@@ -170,7 +170,7 @@
                     android:id="@+id/btn_ctrl_c"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="72dp"
+                    android:layout_height="48dp"
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:layout_rowWeight="1"
@@ -188,7 +188,7 @@
                     android:id="@+id/btn_backspace"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="72dp"
+                    android:layout_height="48dp"
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:layout_rowWeight="1"
@@ -206,7 +206,7 @@
                     android:id="@+id/btn_enter"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="72dp"
+                    android:layout_height="48dp"
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:layout_rowWeight="1"
@@ -241,12 +241,17 @@
                 app:endIconDrawable="@android:drawable/ic_menu_send"
                 app:endIconMode="custom"
                 app:endIconTint="?attr/colorPrimary"
-                app:boxStrokeColor="@color/outline">
+                app:boxStrokeColor="@color/outline"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_input_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:paddingVertical="8dp"
                     android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 !@#$%^&amp;*()-=[]\;',./`~{}|:&quot;&lt;&gt;?_"
                     android:imeOptions="actionSend"
                     android:inputType="text"
@@ -256,6 +261,15 @@
                     android:textColorHint="?attr/colorOnSurfaceVariant" />
 
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="12dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp"
+                android:background="?attr/colorOutlineVariant" />
 
             <!-- Macro list header -->
             <TextView
