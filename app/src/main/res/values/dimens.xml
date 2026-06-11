@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Core button dimensions -->
+    <dimen name="core_button_width">64dp</dimen>
+    <dimen name="core_button_height">64dp</dimen>
     <dimen name="core_button_margin">6dp</dimen>
     <dimen name="core_button_text_size">16sp</dimen>
 
     <!-- Macro button dimensions -->
+    <dimen name="macro_button_width">0dp</dimen>
     <dimen name="macro_button_height">64dp</dimen>
     <dimen name="macro_button_margin">4dp</dimen>
     <dimen name="macro_button_text_size">14sp</dimen>
@@ -14,8 +17,29 @@
     <dimen name="status_bar_padding">16dp</dimen>
     <dimen name="status_text_size">14sp</dimen>
 
+    <!-- Keyboard key dimensions -->
+    <dimen name="key_width">0dp</dimen>
+    <dimen name="key_height">0dp</dimen>
+    <dimen name="key_margin">2dp</dimen>
+    <dimen name="key_text_size">13sp</dimen>
+    <dimen name="key_special_width">0dp</dimen>
+    <dimen name="key_space_width">0dp</dimen>
+
+    <!-- Floating button -->
+    <dimen name="floating_button_size">48dp</dimen>
+    <dimen name="floating_button_margin">12dp</dimen>
+    <dimen name="floating_button_text_size">15sp</dimen>
+
     <!-- Corner radius (M3 standard) -->
     <dimen name="corner_radius">12dp</dimen>
+    <dimen name="button_corner_radius">12dp</dimen>
+    <dimen name="macro_corner_radius">12dp</dimen>
+    <dimen name="key_corner_radius">12dp</dimen>
+
+    <!-- Border width -->
+    <dimen name="border_width">2dp</dimen>
+    <dimen name="button_border_width">2dp</dimen>
+    <dimen name="divider_width">2dp</dimen>
 
     <!-- Padding -->
     <dimen name="button_padding">8dp</dimen>
