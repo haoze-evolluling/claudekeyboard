@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.haoze.claudekeyboard.R
+import com.haoze.claudekeyboard.util.performKeyClick
 
 /**
  * Adapter for displaying paired Bluetooth devices in a list.
@@ -102,6 +103,7 @@ class DeviceAdapter(
 
             itemView.setOnClickListener {
                 if (device.address != connectedAddress && connectingAddress == null) {
+                    it.performKeyClick()
                     onDeviceClick(device)
                 }
             }
