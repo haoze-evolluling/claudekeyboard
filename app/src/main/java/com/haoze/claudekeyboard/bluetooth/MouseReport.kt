@@ -1,5 +1,8 @@
 package com.haoze.claudekeyboard.bluetooth
 
+import kotlin.experimental.and
+import kotlin.experimental.or
+
 /**
  * Inline class wrapping a 5-byte HID mouse report.
  * Report format: [reportId(1) + buttons(1) + deltaX(1) + deltaY(1) + wheel(1)]
