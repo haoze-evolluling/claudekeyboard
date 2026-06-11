@@ -2,23 +2,21 @@
     <string name="app_name">Claude Code keyboard</string>
 
     <!-- Button labels -->
-    <string name="btn_yes">确认 (y ↵)</string>
-    <string name="btn_no">拒绝 (n ↵)</string>
+    <string name="btn_yes">确认 (y)</string>
+    <string name="btn_no">拒绝 (n)</string>
     <string name="btn_ctrl_c">Ctrl+C</string>
-    <string name="btn_yes_to_all">全部确认 (y! ↵)</string>
+    <string name="btn_backspace">退格</string>
+    <string name="btn_enter">回车</string>
+    <string name="btn_yes_to_all">全部确认 (a)</string>
     <string name="btn_add_macro">+ 添加自定义宏</string>
     <string name="btn_send">发送</string>
-    <string name="btn_connect">连接</string>
-    <string name="hint_input_text">输入文本…</string>
+    <string name="hint_input_text">请输入英文或字符</string>
 
     <!-- Status messages -->
-    <string name="status_waiting">等待配对…</string>
-    <string name="status_connected">已连接: %s</string>
-    <string name="status_last_device">上次: %s</string>
-    <string name="status_disconnected">未连接</string>
-    <string name="status_bluetooth_off">蓝牙已关闭</string>
-    <string name="status_not_supported">此设备不支持蓝牙HID</string>
     <string name="status_unknown_device">未知设备</string>
+    <string name="status_connected_label">已连接</string>
+    <string name="status_disconnected_label">未连接</string>
+    <string name="device_name_status">%1$s · %2$s</string>
 
     <!-- Notification -->
     <string name="notification_channel_name">蓝牙HID服务</string>
@@ -52,6 +50,21 @@
 
     <!-- Settings -->
     <string name="settings_title">设置</string>
-    <string name="settings_disconnect">断开连接</string>
     <string name="settings_reset_macros">重置宏为默认值</string>
+    <string name="settings_theme_mode">主题模式</string>
+    <string name="theme_follow_system">跟随系统</string>
+    <string name="theme_light">白天模式</string>
+    <string name="theme_dark">黑夜模式</string>
+    <string name="dialog_reset_macros_confirm">确定要重置所有宏为默认值吗？自定义宏将被删除。</string>
+    <string name="dialog_reset">重置</string>
+    <string name="switch_send_enter">发送回车</string>
+    <string name="device_list_title">设备列表</string>
+    <string name="device_last_connected">上次连接</string>
+    <string name="device_no_paired">没有已配对设备，请先在系统蓝牙设置中配对</string>
+    <string name="device_connected">已连接</string>
+    <string name="dialog_connect_timeout_title">连接超时</string>
+    <string name="dialog_connect_timeout_message">连接超时，请重试</string>
+    <string name="dialog_ok">确定</string>
+    <string name="connect_device">连接设备</string>
+    <string name="disconnect_device">断开连接</string>
 </resources>
