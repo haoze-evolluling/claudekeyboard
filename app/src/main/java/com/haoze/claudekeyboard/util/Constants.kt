@@ -17,6 +17,13 @@ object Constants {
     // SharedPreferences keys
     const val PREFS_NAME_MACRO = "macro_prefs"
     const val KEY_MACROS = "macros"
+    const val PREFS_NAME_SETTINGS = "settings_prefs"
+    const val KEY_THEME_MODE = "theme_mode"
+
+    // Theme mode values
+    const val THEME_FOLLOW_SYSTEM = 0
+    const val THEME_LIGHT = 1
+    const val THEME_DARK = 2
 
     // Notification constants
     const val NOTIFICATION_CHANNEL_ID = "bluetooth_hid_channel"
