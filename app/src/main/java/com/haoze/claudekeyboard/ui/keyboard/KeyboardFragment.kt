@@ -25,8 +25,8 @@ class KeyboardFragment : Fragment() {
 
     // Modifier state
     private var isShiftActive = false
-    private var isCtrlActive = false
-    private var isAltActive = false
+    private var isCtrlLeftActive = false   // Left Ctrl: toggle, hold for combos
+    private var isAltLeftActive = false    // Left Alt: toggle, hold for combos
     private var isWinLeftActive = false   // Left Win: one-shot, sends standalone Win keypress
     private var isWinRightActive = false  // Right Win: toggle only, for combos like Win+R
     private var isCapsLock = false
@@ -35,7 +35,8 @@ class KeyboardFragment : Fragment() {
     // Modifier button references for visual state updates
     private val leftShiftButtons = mutableListOf<TextView>()
     private val rightShiftButtons = mutableListOf<TextView>()
-    private val ctrlButtons = mutableListOf<TextView>()
+    private val ctrlLeftButtons = mutableListOf<TextView>()
+    private val ctrlRightButtons = mutableListOf<TextView>()
     private var altLeftButton: TextView? = null
     private var altRightButton: TextView? = null
     private var winLeftButton: TextView? = null
@@ -386,9 +387,8 @@ class KeyboardFragment : Fragment() {
         when (keyData.modifierBit) {
             KeyboardSender.MODIFIER_SHIFT_LEFT -> leftShiftButtons.add(button)
             KeyboardSender.MODIFIER_SHIFT_RIGHT -> rightShiftButtons.add(button)
-            KeyboardSender.MODIFIER_CTRL_LEFT, KeyboardSender.MODIFIER_CTRL_RIGHT -> {
-                ctrlButtons.add(button)
-            }
+            KeyboardSender.MODIFIER_CTRL_LEFT -> ctrlLeftButtons.add(button)
+            KeyboardSender.MODIFIER_CTRL_RIGHT -> ctrlRightButtons.add(button)
             KeyboardSender.MODIFIER_ALT_LEFT -> altLeftButton = button
             KeyboardSender.MODIFIER_ALT_RIGHT -> altRightButton = button
             KeyboardSender.MODIFIER_GUI_LEFT -> winLeftButton = button
@@ -443,11 +443,25 @@ class KeyboardFragment : Fragment() {
             KeyboardSender.MODIFIER_SHIFT_RIGHT -> {
                 isSymbolLock = !isSymbolLock
             }
-            KeyboardSender.MODIFIER_CTRL_LEFT, KeyboardSender.MODIFIER_CTRL_RIGHT -> {
-                isCtrlActive = !isCtrlActive
+            KeyboardSender.MODIFIER_CTRL_LEFT -> {
+                isCtrlLeftActive = !isCtrlLeftActive
             }
-            KeyboardSender.MODIFIER_ALT_LEFT, KeyboardSender.MODIFIER_ALT_RIGHT -> {
-                isAltActive = !isAltActive
+            KeyboardSender.MODIFIER_CTRL_RIGHT -> {
+                // Right Ctrl: fire-and-forget
+                val sender = getKeyboardSender()
+                if (sender != null) {
+                    Thread { sender.sendKeyPress(KeyboardSender.MODIFIER_CTRL_RIGHT, 0x00) }.start()
+                }
+            }
+            KeyboardSender.MODIFIER_ALT_LEFT -> {
+                isAltLeftActive = !isAltLeftActive
+            }
+            KeyboardSender.MODIFIER_ALT_RIGHT -> {
+                // Right Alt: fire-and-forget
+                val sender = getKeyboardSender()
+                if (sender != null) {
+                    Thread { sender.sendKeyPress(KeyboardSender.MODIFIER_ALT_RIGHT, 0x00) }.start()
+                }
             }
             KeyboardSender.MODIFIER_GUI_LEFT -> {
                 // Left Win: fire-and-forget, no persistent state
@@ -479,10 +493,10 @@ class KeyboardFragment : Fragment() {
      */
     private fun buildModifierByte(): Byte {
         var modifier: Byte = 0
-        if (isCtrlActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_CTRL_LEFT.toInt()).toByte()
+        if (isCtrlLeftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_CTRL_LEFT.toInt()).toByte()
         if (isShiftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_SHIFT_LEFT.toInt()).toByte()
         if (isSymbolLock) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_SHIFT_LEFT.toInt()).toByte()
-        if (isAltActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_ALT_LEFT.toInt()).toByte()
+        if (isAltLeftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_ALT_LEFT.toInt()).toByte()
         if (isWinLeftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_GUI_LEFT.toInt()).toByte()
         if (isWinRightActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_GUI_RIGHT.toInt()).toByte()
         return modifier
@@ -518,20 +532,24 @@ class KeyboardFragment : Fragment() {
             }
         }
 
-        // Ctrl buttons
-        for (btn in ctrlButtons) {
-            btn.setBackgroundResource(if (isCtrlActive) activeBg else normalBg)
-            btn.setTextColor(if (isCtrlActive) activeTextColor else normalTextColor)
+        // Ctrl buttons (left = toggle, right = fire-and-forget)
+        for (btn in ctrlLeftButtons) {
+            btn.setBackgroundResource(if (isCtrlLeftActive) activeBg else normalBg)
+            btn.setTextColor(if (isCtrlLeftActive) activeTextColor else normalTextColor)
+        }
+        for (btn in ctrlRightButtons) {
+            btn.setBackgroundResource(normalBg)
+            btn.setTextColor(normalTextColor)
         }
 
-        // Alt buttons
+        // Alt buttons (left = toggle, right = fire-and-forget)
         altLeftButton?.let {
-            it.setBackgroundResource(if (isAltActive) activeBg else normalBg)
-            it.setTextColor(if (isAltActive) activeTextColor else normalTextColor)
+            it.setBackgroundResource(if (isAltLeftActive) activeBg else normalBg)
+            it.setTextColor(if (isAltLeftActive) activeTextColor else normalTextColor)
         }
         altRightButton?.let {
-            it.setBackgroundResource(if (isAltActive) activeBg else normalBg)
-            it.setTextColor(if (isAltActive) activeTextColor else normalTextColor)
+            it.setBackgroundResource(normalBg)
+            it.setTextColor(normalTextColor)
         }
 
         // Win buttons (independent)
