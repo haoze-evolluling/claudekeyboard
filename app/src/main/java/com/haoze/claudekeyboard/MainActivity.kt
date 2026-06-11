@@ -144,6 +144,8 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(0, 0, 0, systemBars.bottom)
+            // Make visible after insets are applied to avoid layout flash during rotation
+            if (v.visibility == View.INVISIBLE) v.visibility = View.VISIBLE
             insets
         }
     }
