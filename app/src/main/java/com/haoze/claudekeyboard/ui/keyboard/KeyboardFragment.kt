@@ -179,13 +179,14 @@ class KeyboardFragment : Fragment() {
             buildRow(rowLayout, keys)
         }
 
-        // Back to Claude button in row 5
+        // Row 5: Claude button + Touchpad button
         val row5 = root.findViewById<LinearLayout>(R.id.keyboard_row_5)
         val margin = resources.getDimensionPixelSize(R.dimen.keyboard_key_margin)
         val keyHeight = resources.getDimensionPixelSize(R.dimen.keyboard_key_height)
         val textSize = resources.getDimensionPixelSize(R.dimen.keyboard_key_text_size).toFloat()
 
-        val button = TextView(requireContext()).apply {
+        // Back to Claude button
+        val claudeButton = TextView(requireContext()).apply {
             text = getString(R.string.tab_claude)
             gravity = Gravity.CENTER
             setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize)
@@ -199,12 +200,29 @@ class KeyboardFragment : Fragment() {
             }
         }
         val buttonWidth = resources.getDimensionPixelSize(R.dimen.keyboard_back_button_width)
-        val params = LinearLayout.LayoutParams(
-            buttonWidth, keyHeight
-        )
-        params.setMargins(margin, 0, margin, 0)
-        button.layoutParams = params
-        row5.addView(button)
+        val claudeParams = LinearLayout.LayoutParams(buttonWidth, keyHeight)
+        claudeParams.setMargins(margin, 0, margin, 0)
+        claudeButton.layoutParams = claudeParams
+        row5.addView(claudeButton)
+
+        // Go to Touchpad button
+        val touchpadButton = TextView(requireContext()).apply {
+            text = getString(R.string.tab_touchpad)
+            gravity = Gravity.CENTER
+            setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize)
+            setTextColor(resolveAttrColor(com.google.android.material.R.attr.colorOnSurfaceVariant))
+            setBackgroundResource(R.drawable.bg_outline_button)
+            isClickable = true
+            isFocusable = false
+            setOnClickListener {
+                it.performKeyClick()
+                (activity as? MainActivity)?.switchToTouchpadTab()
+            }
+        }
+        val touchpadParams = LinearLayout.LayoutParams(buttonWidth, keyHeight)
+        touchpadParams.setMargins(margin, 0, margin, 0)
+        touchpadButton.layoutParams = touchpadParams
+        row5.addView(touchpadButton)
     }
 
     /**

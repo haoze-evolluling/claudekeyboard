@@ -268,6 +268,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
+     * Switch to Touchpad tab programmatically (called from KeyboardFragment).
+     */
+    fun switchToTouchpadTab() {
+        bottomNav.selectedItemId = R.id.nav_touchpad
+    }
+
+    /**
+     * Switch to Keyboard tab programmatically (called from TouchpadFragment).
+     */
+    fun switchToKeyboardTab() {
+        bottomNav.selectedItemId = R.id.nav_keyboard
+    }
+
+    /**
      * Animate bottom nav sliding up with fade-in.
      */
     private fun animateBottomNavIn(nav: View, divider: View) {

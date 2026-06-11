@@ -25,6 +25,18 @@
             android:paddingHorizontal="14dp"
             android:background="@drawable/bg_outline_button" />
 
+        <TextView
+            android:id="@+id/tv_to_keyboard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/tab_keyboard"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:paddingVertical="6dp"
+            android:paddingHorizontal="14dp"
+            android:background="@drawable/bg_outline_button" />
+
         <View
             android:layout_width="0dp"
             android:layout_height="0dp"

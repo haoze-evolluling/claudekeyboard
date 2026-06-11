@@ -3,6 +3,8 @@ package com.haoze.claudekeyboard.ui.touchpad
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -19,7 +21,8 @@ import kotlin.math.sqrt
 
 /**
  * Touchpad fragment for Bluetooth HID mouse input.
- * Supports single-finger cursor movement, tap-to-click, and two-finger scroll.
+ * Supports single-finger cursor movement, tap-to-click, two-finger scroll,
+ * and long-press drag (hold left button while moving).
  */
 class TouchpadFragment : Fragment() {
 
@@ -31,6 +34,13 @@ class TouchpadFragment : Fragment() {
     private var startTime = 0L
     private var isScrollMode = false
     private var lastPointerCount = 0
+
+    // Drag (long-press hold) state
+    private var isDragging = false
+    private var longPressRunnable: Runnable? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private val longPressDelay = 300L  // ms to trigger drag mode
+    private val dragMaxDistance = 30f  // pixels - max movement before canceling long-press
 
     // Sensitivity (1-10, maps to multiplier)
     private var sensitivity = 5
@@ -67,6 +77,7 @@ class TouchpadFragment : Fragment() {
     @SuppressLint("ClickableViewAccessibility")
     private fun setupViews(root: View) {
         val backToClaude = root.findViewById<TextView>(R.id.tv_back_to_claude)
+        val toKeyboard = root.findViewById<TextView>(R.id.tv_to_keyboard)
         val slider = root.findViewById<Slider>(R.id.slider_sensitivity)
         val touchpadArea = root.findViewById<View>(R.id.touchpad_area)
         val btnLeftClick = root.findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_left_click)
@@ -76,6 +87,12 @@ class TouchpadFragment : Fragment() {
         backToClaude.setOnClickListener {
             it.performKeyClick()
             (activity as? MainActivity)?.switchToClaudeTab()
+        }
+
+        // Go to Keyboard button
+        toKeyboard.setOnClickListener {
+            it.performKeyClick()
+            (activity as? MainActivity)?.switchToKeyboardTab()
         }
 
         // Sensitivity slider
@@ -118,12 +135,34 @@ class TouchpadFragment : Fragment() {
                 startY = event.y
                 startTime = System.currentTimeMillis()
                 isScrollMode = false
+                isDragging = false
                 lastPointerCount = 1
+
+                // Start long-press timer for drag mode
+                longPressRunnable?.let { handler.removeCallbacks(it) }
+                longPressRunnable = Runnable {
+                    // Long press triggered → enter drag mode (hold left button)
+                    if (!isScrollMode) {
+                        isDragging = true
+                        getMouseSender()?.let { sender ->
+                            Thread {
+                                sender.mouseReport.reset()
+                                sender.mouseReport.leftButton = true
+                                sender.sendMouseReport()
+                            }.start()
+                        }
+                    }
+                }
+                handler.postDelayed(longPressRunnable!!, longPressDelay)
             }
 
             MotionEvent.ACTION_POINTER_DOWN -> {
                 if (pointerCount == 2) {
-                    // Enter scroll mode
+                    // Cancel long-press / drag, enter scroll mode
+                    cancelLongPress()
+                    if (isDragging) {
+                        releaseDrag()
+                    }
                     isScrollMode = true
                     lastTwoFingerY = (event.getY(0) + event.getY(1)) / 2f
                 }
@@ -131,6 +170,17 @@ class TouchpadFragment : Fragment() {
 
             MotionEvent.ACTION_MOVE -> {
                 val now = System.currentTimeMillis()
+
+                // If finger moved too far before long-press triggers, cancel it
+                if (!isDragging && !isScrollMode && pointerCount == 1) {
+                    val dx = event.x - startX
+                    val dy = event.y - startY
+                    val distance = sqrt(dx * dx + dy * dy)
+                    if (distance > dragMaxDistance) {
+                        cancelLongPress()
+                    }
+                }
+
                 if (now - lastSendTime < throttleInterval) return true
 
                 if (isScrollMode && pointerCount >= 2) {
@@ -147,7 +197,7 @@ class TouchpadFragment : Fragment() {
                         lastSendTime = now
                     }
                 } else if (!isScrollMode && pointerCount == 1) {
-                    // Single finger cursor movement
+                    // Single finger cursor movement (or drag movement)
                     val dx = event.x - lastX
                     val dy = event.y - lastY
 
@@ -175,7 +225,12 @@ class TouchpadFragment : Fragment() {
             }
 
             MotionEvent.ACTION_UP -> {
-                if (!isScrollMode && pointerCount == 1) {
+                cancelLongPress()
+
+                if (isDragging) {
+                    // Release drag (release left button)
+                    releaseDrag()
+                } else if (!isScrollMode && pointerCount == 1) {
                     // Check for tap (left click)
                     val dx = event.x - startX
                     val dy = event.y - startY
@@ -190,10 +245,31 @@ class TouchpadFragment : Fragment() {
                 }
                 isScrollMode = false
             }
+
+            MotionEvent.ACTION_CANCEL -> {
+                cancelLongPress()
+                if (isDragging) releaseDrag()
+                isScrollMode = false
+            }
         }
 
         lastPointerCount = pointerCount
         return true
+    }
+
+    private fun cancelLongPress() {
+        longPressRunnable?.let { handler.removeCallbacks(it) }
+        longPressRunnable = null
+    }
+
+    private fun releaseDrag() {
+        isDragging = false
+        getMouseSender()?.let { sender ->
+            Thread {
+                sender.mouseReport.reset()
+                sender.sendMouseReport()
+            }.start()
+        }
     }
 
     private fun loadSensitivity() {
