@@ -36,6 +36,8 @@ class TouchpadFragment : Fragment() {
     private var startTime = 0L
     private var isScrollMode = false
     private var lastPointerCount = 0
+    private var scrollEndTime = 0L
+    private val scrollCooldown = 100L  // ms to ignore single-finger events after scroll
 
     // Drag (long-press hold) state
     private var isDragging = false
@@ -143,6 +145,9 @@ class TouchpadFragment : Fragment() {
 
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                // Ignore touch events during scroll cooldown
+                if (System.currentTimeMillis() - scrollEndTime < scrollCooldown) return true
+
                 lastX = event.x
                 lastY = event.y
                 startX = event.x
@@ -158,6 +163,7 @@ class TouchpadFragment : Fragment() {
                     // Long press triggered → enter drag mode (hold left button)
                     if (!isScrollMode) {
                         isDragging = true
+                        view?.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         getMouseSender()?.let { sender ->
                             Thread {
                                 sender.mouseReport.reset()
@@ -178,6 +184,7 @@ class TouchpadFragment : Fragment() {
                         releaseDrag()
                     }
                     isScrollMode = true
+                    view?.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                     lastTwoFingerX = (event.getX(0) + event.getX(1)) / 2f
                     lastTwoFingerY = (event.getY(0) + event.getY(1)) / 2f
 
@@ -230,7 +237,8 @@ class TouchpadFragment : Fragment() {
                         lastTwoFingerY = currentY
                         lastSendTime = now
                     }
-                } else if (!isScrollMode && pointerCount == 1) {
+                } else if (!isScrollMode && pointerCount == 1
+                    && System.currentTimeMillis() - scrollEndTime >= scrollCooldown) {
                     // Single finger cursor movement (or drag movement)
                     val dx = event.x - lastX
                     val dy = event.y - lastY
@@ -261,8 +269,10 @@ class TouchpadFragment : Fragment() {
                 if (pointerCount == 2) {
                     // Exiting scroll mode
                     isScrollMode = false
+                    scrollEndTime = System.currentTimeMillis()
 
                     // Detect two-finger tap (right click)
+                    var isTap = false
                     if (isTwoFingerGesture) {
                         val duration = SystemClock.uptimeMillis() - twoFingerStartTime
                         val dx = event.getX(0) - twoFingerStartX[0]
@@ -270,12 +280,17 @@ class TouchpadFragment : Fragment() {
                         val distance = sqrt(dx * dx + dy * dy)
 
                         if (duration < TWO_FINGER_TAP_TIMEOUT && distance < TWO_FINGER_TAP_MAX_DISTANCE) {
+                            isTap = true
                             // Two-finger tap detected - send right click
                             getMouseSender()?.let { sender ->
                                 Thread { sender.sendMouseClick(MouseReport.BUTTON_RIGHT) }.start()
                             }
                             view?.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                         }
+                    }
+                    // Haptic feedback for scroll lift (skip if already triggered by tap)
+                    if (!isTap) {
+                        view?.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                     }
                     isTwoFingerGesture = false
                 }
