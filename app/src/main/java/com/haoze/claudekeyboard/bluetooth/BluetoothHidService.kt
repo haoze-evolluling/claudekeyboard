@@ -251,9 +251,9 @@ class BluetoothHidService : Service() {
         }
 
         val sdpSettings = BluetoothHidDeviceAppSdpSettings(
-            "Claude Code Keyboard",
-            "Claude Code Bluetooth HID Keyboard",
-            "Claude Code",
+            "SyncTouch Keyboard",
+            "SyncTouch Bluetooth HID Keyboard",
+            "SyncTouch",
             BluetoothHidDevice.SUBCLASS1_KEYBOARD,
             DescriptorCollection.COMBINED
         )

@@ -19,12 +19,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.haoze.claudekeyboard.ui.home.HomeAdapter
+import com.haoze.claudekeyboard.ui.home.HomeItem
 import com.haoze.claudekeyboard.bluetooth.BluetoothHidService
 import com.haoze.claudekeyboard.bluetooth.KeyboardSender
 import com.haoze.claudekeyboard.bluetooth.MouseSender
@@ -45,9 +47,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var macroRepository: MacroRepository
 
     // UI components
-    private lateinit var tvDeviceName: TextView
-    private lateinit var tvDeviceAction: TextView
-    private lateinit var btnSettings: ImageButton
     private lateinit var btnYes: MaterialButton
     private lateinit var btnNo: MaterialButton
     private lateinit var btnCtrlC: MaterialButton
@@ -60,13 +59,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var macroAdapter: MacroButtonAdapter
     private var deviceListDialog: DeviceListBottomSheetFragment? = null
 
-    // Bottom navigation
-    private lateinit var bottomNav: BottomNavigationView
+    // Navigation
+    private lateinit var contentHome: View
     private lateinit var contentClaude: View
     private lateinit var contentKeyboard: View
-    private var keyboardFragment: KeyboardFragment? = null
     private lateinit var contentTouchpad: View
+    private lateinit var contentSettings: View
+    private var keyboardFragment: KeyboardFragment? = null
     private var touchpadFragment: TouchpadFragment? = null
+    private lateinit var homeAdapter: HomeAdapter
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -91,11 +92,22 @@ class MainActivity : AppCompatActivity() {
         macroRepository = MacroRepository(this)
         initViews()
         setupWindowInsets()
-        setupBottomNavigation()
+        setupHomePage()
+        setupSettingsPage()
         setupCoreButtons()
         setupMacroRecyclerView()
         setupTextInput()
         startAndBindHidService()
+
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (contentHome.visibility != View.VISIBLE) {
+                    navigateToHome()
+                } else {
+                    finish()
+                }
+            }
+        })
     }
 
     override fun onDestroy() {
@@ -127,7 +139,6 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Handle display cutout (front camera) + system bars.
-     * Bottom inset is handled by BottomNavigationView separately.
      */
     private fun setupWindowInsets() {
         val mainView = findViewById<View>(R.id.main)
@@ -140,23 +151,12 @@ class MainActivity : AppCompatActivity() {
             val left = maxOf(systemBars.left, cutout?.safeInsetLeft ?: 0)
             val top = maxOf(systemBars.top, cutout?.safeInsetTop ?: 0)
             val right = maxOf(systemBars.right, cutout?.safeInsetRight ?: 0)
-            // Don't apply bottom padding here; bottom nav handles it
             v.setPadding(left, top, right, 0)
-            insets
-        }
-
-        // Let bottom nav handle the bottom system bar inset
-        ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(0, 0, 0, systemBars.bottom)
             insets
         }
     }
 
     private fun initViews() {
-        tvDeviceName = findViewById(R.id.tv_device_name)
-        tvDeviceAction = findViewById(R.id.tv_device_action)
-        btnSettings = findViewById(R.id.btn_settings)
         btnYes = findViewById(R.id.btn_yes)
         btnNo = findViewById(R.id.btn_no)
         btnCtrlC = findViewById(R.id.btn_ctrl_c)
@@ -166,84 +166,111 @@ class MainActivity : AppCompatActivity() {
         inputLayout = findViewById(R.id.til_input)
         inputText = findViewById(R.id.et_input_text)
         macroRecyclerView = findViewById(R.id.rv_macros)
-        bottomNav = findViewById(R.id.bottom_nav)
+        contentHome = findViewById(R.id.content_home)
         contentClaude = findViewById(R.id.content_claude)
         contentKeyboard = findViewById(R.id.content_keyboard)
         contentTouchpad = findViewById(R.id.content_touchpad)
+        contentSettings = findViewById(R.id.content_settings)
+    }
 
-        tvDeviceAction.setOnClickListener {
-            it.performKeyClick()
-            val service = hidService
-            if (service != null && service.isConnected()) {
-                service.disconnect()
-            } else {
-                showDeviceListDialog()
+    private fun setupHomePage() {
+        val rvHome = findViewById<RecyclerView>(R.id.rv_home)
+        homeAdapter = HomeAdapter { entry ->
+            when (entry.id) {
+                "keyboard" -> navigateToPage(contentKeyboard, landscape = true)
+                "touchpad" -> navigateToPage(contentTouchpad, landscape = true)
+                "claude" -> navigateToPage(contentClaude, landscape = false)
+                "device" -> showDeviceListDialog()
+                "settings" -> navigateToPage(contentSettings, landscape = false)
             }
         }
-        btnSettings.setOnClickListener {
-            it.performKeyClick()
-            showSettingsDialog()
+        rvHome.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            adapter = homeAdapter
+        }
+        loadHomeItems()
+    }
+
+    private fun loadHomeItems() {
+        val items = listOf(
+            HomeItem.Section(getString(R.string.home_functions)),
+            HomeItem.Entry(
+                id = "keyboard",
+                title = getString(R.string.home_keyboard_title),
+                subtitle = getString(R.string.home_keyboard_subtitle),
+                iconRes = R.drawable.ic_home_keyboard
+            ),
+            HomeItem.Entry(
+                id = "touchpad",
+                title = getString(R.string.home_touchpad_title),
+                subtitle = getString(R.string.home_touchpad_subtitle),
+                iconRes = R.drawable.ic_home_touchpad
+            ),
+            HomeItem.Entry(
+                id = "claude",
+                title = getString(R.string.home_claude_title),
+                subtitle = getString(R.string.home_claude_subtitle),
+                iconRes = R.drawable.ic_home_claude
+            ),
+            HomeItem.Section(getString(R.string.home_system)),
+            HomeItem.Entry(
+                id = "device",
+                title = getString(R.string.home_device_title),
+                subtitle = getString(R.string.home_device_subtitle),
+                iconRes = R.drawable.ic_home_device
+            ),
+            HomeItem.Entry(
+                id = "settings",
+                title = getString(R.string.home_settings_title),
+                subtitle = getString(R.string.home_settings_subtitle),
+                iconRes = R.drawable.ic_home_settings
+            )
+        )
+        homeAdapter.submitList(items)
+    }
+
+    private fun navigateToPage(targetContent: View, landscape: Boolean) {
+        contentHome.visibility = View.GONE
+        contentClaude.visibility = View.GONE
+        contentKeyboard.visibility = View.GONE
+        contentTouchpad.visibility = View.GONE
+        contentSettings.visibility = View.GONE
+        targetContent.visibility = View.VISIBLE
+
+        if (landscape) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        } else {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+
+        if (targetContent == contentKeyboard) {
+            keyboardFragment = supportFragmentManager.findFragmentById(R.id.keyboard_fragment_container) as? KeyboardFragment
+            updateKeyboardEnabled()
+        } else if (targetContent == contentTouchpad) {
+            touchpadFragment = supportFragmentManager.findFragmentById(R.id.touchpad_fragment_container) as? TouchpadFragment
+            updateTouchpadEnabled()
         }
     }
 
-    private fun setupBottomNavigation() {
-        // Divider above bottom nav
-        val dividerAboveNav = findViewById<View>(R.id.divider_above_nav)
-        var isFirstLoad = true
+    fun navigateToHome() {
+        contentHome.visibility = View.VISIBLE
+        contentClaude.visibility = View.GONE
+        contentKeyboard.visibility = View.GONE
+        contentTouchpad.visibility = View.GONE
+        contentSettings.visibility = View.GONE
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        updateDeviceSubtitle()
+    }
 
-        bottomNav.setOnItemSelectedListener { item ->
-            bottomNav.performKeyClick()
-            when (item.itemId) {
-                R.id.nav_claude -> {
-                    contentClaude.visibility = View.VISIBLE
-                    contentKeyboard.visibility = View.GONE
-                    contentTouchpad.visibility = View.GONE
-                    if (isFirstLoad) {
-                        // First load: show immediately
-                        isFirstLoad = false
-                        bottomNav.visibility = View.VISIBLE
-                        dividerAboveNav.visibility = View.VISIBLE
-                    } else {
-                        // Returning from keyboard: hide, rotate, then animate in
-                        bottomNav.visibility = View.INVISIBLE
-                        dividerAboveNav.visibility = View.INVISIBLE
-                        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                        bottomNav.postDelayed({
-                            animateBottomNavIn(bottomNav, dividerAboveNav)
-                        }, 800)
-                    }
-                    true
-                }
-                R.id.nav_touchpad -> {
-                    contentClaude.visibility = View.GONE
-                    contentKeyboard.visibility = View.GONE
-                    contentTouchpad.visibility = View.VISIBLE
-                    bottomNav.visibility = View.GONE
-                    dividerAboveNav.visibility = View.GONE
-                    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                    touchpadFragment = supportFragmentManager.findFragmentById(R.id.touchpad_fragment_container) as? TouchpadFragment
-                    updateTouchpadEnabled()
-                    true
-                }
-                R.id.nav_keyboard -> {
-                    contentClaude.visibility = View.GONE
-                    contentKeyboard.visibility = View.VISIBLE
-                    contentTouchpad.visibility = View.GONE
-                    // Hide bottom nav for keyboard tab
-                    bottomNav.visibility = View.GONE
-                    dividerAboveNav.visibility = View.GONE
-                    // Switch to landscape for keyboard tab
-                    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                    // Find keyboard fragment
-                    keyboardFragment = supportFragmentManager.findFragmentById(R.id.keyboard_fragment_container) as? KeyboardFragment
-                    updateKeyboardEnabled()
-                    true
-                }
-                else -> false
-            }
+    private fun updateDeviceSubtitle() {
+        val isConnected = hidService?.isConnected() == true
+        val deviceName = hidService?.getConnectedDeviceName()
+        val subtitle = if (isConnected && deviceName != null) {
+            getString(R.string.device_name_status, deviceName, getString(R.string.status_connected_label))
+        } else {
+            getString(R.string.home_device_subtitle)
         }
-        // Default: Claude tab selected
-        bottomNav.selectedItemId = R.id.nav_claude
+        homeAdapter.updateSubtitle("device", subtitle)
     }
 
     /**
@@ -260,39 +287,16 @@ class MainActivity : AppCompatActivity() {
         return hidService?.getMouseSender()
     }
 
-    /**
-     * Switch to Claude tab programmatically (called from KeyboardFragment).
-     */
     fun switchToClaudeTab() {
-        bottomNav.selectedItemId = R.id.nav_claude
+        navigateToPage(contentClaude, landscape = false)
     }
 
-    /**
-     * Switch to Touchpad tab programmatically (called from KeyboardFragment).
-     */
     fun switchToTouchpadTab() {
-        bottomNav.selectedItemId = R.id.nav_touchpad
+        navigateToPage(contentTouchpad, landscape = true)
     }
 
-    /**
-     * Switch to Keyboard tab programmatically (called from TouchpadFragment).
-     */
     fun switchToKeyboardTab() {
-        bottomNav.selectedItemId = R.id.nav_keyboard
-    }
-
-    /**
-     * Animate bottom nav sliding up with fade-in.
-     */
-    private fun animateBottomNavIn(nav: View, divider: View) {
-        nav.visibility = View.VISIBLE
-        divider.visibility = View.VISIBLE
-        nav.translationY = nav.height.toFloat()
-        nav.alpha = 0f
-        divider.translationY = divider.height.toFloat()
-        divider.alpha = 0f
-        nav.animate().translationY(0f).alpha(1f).setDuration(250).start()
-        divider.animate().translationY(0f).alpha(1f).setDuration(250).start()
+        navigateToPage(contentKeyboard, landscape = true)
     }
 
     /**
@@ -309,6 +313,37 @@ class MainActivity : AppCompatActivity() {
     private fun updateKeyboardEnabled() {
         val isConnected = hidService?.isConnected() == true
         keyboardFragment?.setKeyboardEnabled(isConnected)
+    }
+
+    private fun setupSettingsPage() {
+        val btnBack = findViewById<ImageButton>(R.id.btn_back_settings)
+        btnBack.setOnClickListener {
+            it.performKeyClick()
+            navigateToHome()
+        }
+
+        val themeModeLayout = findViewById<View>(R.id.settings_theme_mode)
+        val tvThemeCurrent = findViewById<TextView>(R.id.tv_theme_current)
+        val prefs = getSharedPreferences(Constants.PREFS_NAME_SETTINGS, Context.MODE_PRIVATE)
+        val currentTheme = prefs.getInt(Constants.KEY_THEME_MODE, Constants.THEME_FOLLOW_SYSTEM)
+        tvThemeCurrent.text = getThemeModeName(currentTheme)
+
+        themeModeLayout.setOnClickListener {
+            showThemeSelectionDialog(tvThemeCurrent)
+        }
+
+        val resetMacrosLayout = findViewById<View>(R.id.settings_reset_macros)
+        resetMacrosLayout.setOnClickListener {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.settings_reset_macros)
+                .setMessage(R.string.dialog_reset_macros_confirm)
+                .setPositiveButton(R.string.dialog_reset) { _, _ ->
+                    macroRepository.resetToDefaults()
+                    loadMacros()
+                }
+                .setNegativeButton(R.string.dialog_cancel, null)
+                .show()
+        }
     }
 
     private fun setupCoreButtons() {
@@ -411,25 +446,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateStatusUI(isConnected: Boolean, deviceName: String?) {
         if (isConnected) {
-            val name = deviceName ?: getString(R.string.status_unknown_device)
-            tvDeviceName.text = getString(R.string.device_name_status, name, getString(R.string.status_connected_label))
-            tvDeviceName.setTextColor(getColor(R.color.status_connected))
-            tvDeviceAction.text = getString(R.string.disconnect_device)
             enableAllButtons()
         } else {
-            val lastName = hidService?.getLastConnectedDeviceName()
-            if (lastName != null) {
-                tvDeviceName.text = getString(R.string.device_name_status, lastName, getString(R.string.status_disconnected_label))
-            } else {
-                tvDeviceName.text = ""
-            }
-            tvDeviceName.setTextColor(getColor(R.color.status_disconnected))
-            tvDeviceAction.text = getString(R.string.connect_device)
             disableAllButtons()
         }
         // Update keyboard fragment enabled state
         updateKeyboardEnabled()
         updateTouchpadEnabled()
+        updateDeviceSubtitle()
     }
 
     private fun enableAllButtons() {
@@ -471,38 +495,6 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, R.string.toast_macro_deleted, Toast.LENGTH_SHORT).show()
                 loadMacros()
             }
-            .setNegativeButton(R.string.dialog_cancel, null)
-            .show()
-    }
-
-    private fun showSettingsDialog() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_settings, null)
-        val tvThemeMode = dialogView.findViewById<TextView>(R.id.tv_theme_mode)
-        val tvResetMacros = dialogView.findViewById<TextView>(R.id.tv_reset_macros)
-
-        val prefs = getSharedPreferences(Constants.PREFS_NAME_SETTINGS, Context.MODE_PRIVATE)
-        val currentTheme = prefs.getInt(Constants.KEY_THEME_MODE, Constants.THEME_FOLLOW_SYSTEM)
-        tvThemeMode.text = getThemeModeName(currentTheme)
-
-        tvThemeMode.setOnClickListener {
-            showThemeSelectionDialog(tvThemeMode)
-        }
-
-        tvResetMacros.setOnClickListener {
-            MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.settings_reset_macros)
-                .setMessage(R.string.dialog_reset_macros_confirm)
-                .setPositiveButton(R.string.dialog_reset) { _, _ ->
-                    macroRepository.resetToDefaults()
-                    loadMacros()
-                }
-                .setNegativeButton(R.string.dialog_cancel, null)
-                .show()
-        }
-
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.settings_title)
-            .setView(dialogView)
             .setNegativeButton(R.string.dialog_cancel, null)
             .show()
     }

@@ -18,7 +18,7 @@
             android:id="@+id/tv_back_to_claude"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/tab_claude"
+            android:text="@string/nav_back"
             android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textColor="?attr/colorPrimary"
             android:paddingVertical="6dp"

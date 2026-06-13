@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Claude Code keyboard</string>
+    <string name="app_name">SyncTouch</string>
 
     <!-- Button labels -->
     <string name="btn_yes">确认 (y)</string>
@@ -21,7 +21,7 @@
     <!-- Notification -->
     <string name="notification_channel_name">蓝牙HID服务</string>
     <string name="notification_channel_description">显示蓝牙HID键盘连接状态</string>
-    <string name="notification_title">Claude Code keyboard</string>
+    <string name="notification_title">SyncTouch</string>
     <string name="notification_waiting">等待配对…</string>
     <string name="notification_connected">已连接: %s</string>
 
@@ -88,4 +88,21 @@
     <string name="key_space">Space</string>
     <string name="key_bksp">Bksp</string>
     <string name="key_enter">Enter</string>
+
+    <!-- Home page -->
+    <string name="home_functions">功能</string>
+    <string name="home_system">系统</string>
+    <string name="home_keyboard_title">键盘</string>
+    <string name="home_keyboard_subtitle">蓝牙 HID 键盘输入</string>
+    <string name="home_touchpad_title">触控板</string>
+    <string name="home_touchpad_subtitle">蓝牙 HID 鼠标控制</string>
+    <string name="home_claude_title">Claude 辅助</string>
+    <string name="home_claude_subtitle">快捷命令与文本输入</string>
+    <string name="home_device_title">设备连接</string>
+    <string name="home_device_subtitle">管理蓝牙设备</string>
+    <string name="home_settings_title">设置</string>
+    <string name="home_settings_subtitle">主题与数据管理</string>
+    <string name="nav_back">返回</string>
+    <string name="settings_theme_mode_label">主题模式</string>
+    <string name="settings_theme_current">当前: %s</string>
 </resources>

@@ -68,7 +68,8 @@ class KeyboardFragment : Fragment() {
         val hidModifier: Byte = 0x00,   // Modifier needed for this key (e.g., shift for '!')
         val type: KeyType = KeyType.NORMAL,
         val modifierBit: Byte = 0x00,   // For MODIFIER type: which modifier bit this key toggles
-        val weight: Float = 1f          // Layout weight for sizing
+        val weight: Float = 1f,         // Layout weight for sizing
+        val shiftKeyCode: Byte = 0x00   // Alternative HID key code when symbol lock is active (e.g., arrow keys)
     )
 
     // ---- Key Row Definitions ----
@@ -94,7 +95,7 @@ class KeyboardFragment : Fragment() {
     private val row1Keys = listOf(
         KeyData("Tab", "", KeyboardSender.KEY_TAB, type = KeyType.SPECIAL, weight = 1.3f),
         KeyData("Q", "", KeyboardSender.KEY_Q),
-        KeyData("W", "", KeyboardSender.KEY_W),
+        KeyData("W", "↑", KeyboardSender.KEY_W, shiftKeyCode = KeyboardSender.KEY_UP),
         KeyData("E", "", KeyboardSender.KEY_E),
         KeyData("R", "", KeyboardSender.KEY_R),
         KeyData("T", "", KeyboardSender.KEY_T),
@@ -110,9 +111,9 @@ class KeyboardFragment : Fragment() {
 
     private val row2Keys = listOf(
         KeyData("Caps", "", KeyboardSender.KEY_CAPS_LOCK, type = KeyType.SPECIAL, weight = 1.5f),
-        KeyData("A", "", KeyboardSender.KEY_A),
-        KeyData("S", "", KeyboardSender.KEY_S),
-        KeyData("D", "", KeyboardSender.KEY_D),
+        KeyData("A", "←", KeyboardSender.KEY_A, shiftKeyCode = KeyboardSender.KEY_LEFT),
+        KeyData("S", "↓", KeyboardSender.KEY_S, shiftKeyCode = KeyboardSender.KEY_DOWN),
+        KeyData("D", "→", KeyboardSender.KEY_D, shiftKeyCode = KeyboardSender.KEY_RIGHT),
         KeyData("F", "", KeyboardSender.KEY_F),
         KeyData("G", "", KeyboardSender.KEY_G),
         KeyData("H", "", KeyboardSender.KEY_H),
@@ -196,7 +197,7 @@ class KeyboardFragment : Fragment() {
             isFocusable = false
             setOnClickListener {
                 it.performKeyClick()
-                (activity as? MainActivity)?.switchToClaudeTab()
+                (activity as? MainActivity)?.navigateToHome()
             }
         }
         val buttonWidth = resources.getDimensionPixelSize(R.dimen.keyboard_back_button_width)
@@ -278,18 +279,25 @@ class KeyboardFragment : Fragment() {
                                 button.setBackgroundResource(R.drawable.bg_key_pressed)
                                 v.isPressed = true
 
-                                // Build modifier once for this press and all repeats
-                                val effectiveModifier = when {
-                                    isSymbolLock && keyData.shiftLabel.isNotEmpty() -> KeyboardSender.MODIFIER_SHIFT_LEFT
-                                    else -> 0x00
+                                // Build effective key code and modifier once for this press and all repeats
+                                val effectiveKeyCode: Byte
+                                val combinedModifier: Byte
+                                if (isSymbolLock && keyData.shiftKeyCode.toInt() != 0) {
+                                    effectiveKeyCode = keyData.shiftKeyCode
+                                    combinedModifier = buildModifierByteWithoutShift()
+                                } else if (isSymbolLock && keyData.shiftLabel.isNotEmpty()) {
+                                    effectiveKeyCode = keyData.hidKeyCode
+                                    combinedModifier = buildModifierByte()
+                                } else {
+                                    effectiveKeyCode = keyData.hidKeyCode
+                                    combinedModifier = buildModifierByte()
                                 }
-                                val combinedModifier = (effectiveModifier.toInt() or buildModifierByte().toInt()).toByte()
                                 val sender = getKeyboardSender()
 
                                 if (sender != null) {
                                     // Send initial keypress
                                     Thread {
-                                        sender.sendKeyPress(combinedModifier, keyData.hidKeyCode)
+                                        sender.sendKeyPress(combinedModifier, effectiveKeyCode)
                                     }.start()
 
                                     // Start long-press repeat
@@ -298,7 +306,7 @@ class KeyboardFragment : Fragment() {
                                             if (!isKeyPressed) return
                                             v.performKeyClick()
                                             Thread {
-                                                sender.sendKeyPress(combinedModifier, keyData.hidKeyCode)
+                                                sender.sendKeyPress(combinedModifier, effectiveKeyCode)
                                             }.start()
                                             handler.postDelayed(this, 50)
                                         }
@@ -405,12 +413,22 @@ class KeyboardFragment : Fragment() {
                 Thread { sender.sendKeyPress(modifier, keyData.hidKeyCode) }.start()
             }
             KeyType.NORMAL -> {
-                val effectiveModifier = when {
-                    isSymbolLock && keyData.shiftLabel.isNotEmpty() -> KeyboardSender.MODIFIER_SHIFT_LEFT
-                    else -> 0x00
+                val effectiveKeyCode: Byte
+                val effectiveModifier: Byte
+                val combinedModifier: Byte
+                if (isSymbolLock && keyData.shiftKeyCode.toInt() != 0) {
+                    // Has alternative key code (e.g., WASD → arrow keys): send pure arrow key
+                    effectiveKeyCode = keyData.shiftKeyCode
+                    combinedModifier = buildModifierByteWithoutShift()
+                } else if (isSymbolLock && keyData.shiftLabel.isNotEmpty()) {
+                    // Has shift label only (e.g., 1 → !): use original key code with shift modifier
+                    effectiveKeyCode = keyData.hidKeyCode
+                    combinedModifier = buildModifierByte()
+                } else {
+                    effectiveKeyCode = keyData.hidKeyCode
+                    combinedModifier = buildModifierByte()
                 }
-                val combinedModifier = (effectiveModifier.toInt() or buildModifierByte().toInt()).toByte()
-                Thread { sender.sendKeyPress(combinedModifier, keyData.hidKeyCode) }.start()
+                Thread { sender.sendKeyPress(combinedModifier, effectiveKeyCode) }.start()
             }
         }
     }
@@ -473,6 +491,21 @@ class KeyboardFragment : Fragment() {
         var modifier: Byte = 0
         if (isCtrlLeftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_CTRL_LEFT.toInt()).toByte()
         if (isSymbolLock) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_SHIFT_LEFT.toInt()).toByte()
+        if (isAltLeftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_ALT_LEFT.toInt()).toByte()
+        if (isWinLeftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_GUI_LEFT.toInt()).toByte()
+        if (isWinRightActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_GUI_RIGHT.toInt()).toByte()
+        return modifier
+    }
+
+    /**
+     * Build modifier byte excluding the symbol lock shift bit.
+     * Used for keys with shiftKeyCode (e.g., WASD → arrow keys) so they send
+     * pure arrow keys without an unwanted Shift modifier.
+     */
+    private fun buildModifierByteWithoutShift(): Byte {
+        var modifier: Byte = 0
+        if (isCtrlLeftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_CTRL_LEFT.toInt()).toByte()
+        // Skip isSymbolLock shift for arrow keys
         if (isAltLeftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_ALT_LEFT.toInt()).toByte()
         if (isWinLeftActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_GUI_LEFT.toInt()).toByte()
         if (isWinRightActive) modifier = (modifier.toInt() or KeyboardSender.MODIFIER_GUI_RIGHT.toInt()).toByte()

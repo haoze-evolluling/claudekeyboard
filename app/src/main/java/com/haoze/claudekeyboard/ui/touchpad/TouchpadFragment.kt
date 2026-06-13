@@ -102,7 +102,7 @@ class TouchpadFragment : Fragment() {
         // Back to Claude button
         backToClaude.setOnClickListener {
             it.performKeyClick()
-            (activity as? MainActivity)?.switchToClaudeTab()
+            (activity as? MainActivity)?.navigateToHome()
         }
 
         // Go to Keyboard button
