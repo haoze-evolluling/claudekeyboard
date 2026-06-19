@@ -13,12 +13,16 @@ class MouseSender(
     val host: BluetoothDevice
 ) {
 
+    /** Called when a HID report fails to send. Parameter is a human-readable message. */
+    var onSendError: ((String) -> Unit)? = null
+
     /**
      * Send a mouse report using a local report instance (thread-safe).
      */
     private fun sendReportLocal(report: MouseReport) {
         if (!hidDevice.sendReport(host, MouseReport.ID, report.bytes.copyOfRange(1, report.bytes.size))) {
             Log.e(TAG, "Mouse report wasn't sent")
+            onSendError?.invoke("Mouse report send failed")
         }
     }
 

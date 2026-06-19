@@ -37,6 +37,10 @@ class BluetoothHidService : Service() {
         private const val NOTIFICATION_CHANNEL_ID = "bluetooth_hid_channel"
         private const val NOTIFICATION_ID = 1001
         private const val MAX_REGISTRATION_RETRIES = 3
+        private const val MAX_RECONNECT_RETRIES = 5
+        private const val RECONNECT_BASE_DELAY_MS = 2_000L
+        private const val RECONNECT_MAX_DELAY_MS = 30_000L
+        private const val HID_PROXY_TIMEOUT_MS = 15_000L
         private const val PREFS_NAME = "bluetooth_prefs"
         private const val KEY_LAST_DEVICE_ADDRESS = "last_device_address"
         private const val KEY_LAST_DEVICE_NAME = "last_device_name"
@@ -59,27 +63,35 @@ class BluetoothHidService : Service() {
 
     // ---- State machine ----
 
+    @Volatile
     private var state: HidState = HidState.Unregistered
         set(value) {
             Log.d(TAG, "State: ${field::class.simpleName} → ${value::class.simpleName}")
             field = value
         }
 
+    @Volatile
     private var userInitiatedDisconnect = false
     private var isShuttingDown = false
     private var registrationRetryCount = 0
+    private var reconnectRetryCount = 0
+    @Volatile
     private var lastReconnectAttempt: Long = 0
 
     // ---- Sender instances (live only in Connected state) ----
 
+    @Volatile
     private var keyboardSender: KeyboardSender? = null
+    @Volatile
     private var mouseSender: MouseSender? = null
+    @Volatile
     private var tvRemoteSender: TvRemoteSender? = null
 
     // ---- Callbacks ----
 
     private var onConnectionStateChanged: ((Boolean, String?) -> Unit)? = null
     private var onRegistrationStateChanged: ((Boolean) -> Unit)? = null
+    private var onSendError: ((String) -> Unit)? = null
 
     // ---- Persistence ----
 
@@ -162,6 +174,10 @@ class BluetoothHidService : Service() {
         onRegistrationStateChanged = listener
     }
 
+    fun setOnSendErrorListener(listener: (String) -> Unit) {
+        onSendError = listener
+    }
+
     // ---- Public API ----
 
     fun getHidDevice(): BluetoothHidDevice? = hidDevice
@@ -210,8 +226,14 @@ class BluetoothHidService : Service() {
             .putString(KEY_LAST_DEVICE_ADDRESS, address)
             .putString(KEY_LAST_DEVICE_NAME, device.name)
             .apply()
-        userInitiatedDisconnect = false
+        // NOTE: userInitiatedDisconnect intentionally NOT reset here.
+        // It was set to true above if we were connected to a previous device.
+        // After the async disconnect callback fires, it will check this flag and
+        // skip scheduleReconnect(). The flag is reset in onConnectionStateChanged:
+        //   - STATE_CONNECTED resets it on successful connection
+        //   - STATE_DISCONNECTED resets it after checking (to prevent stale state)
         lastReconnectAttempt = 0
+        reconnectRetryCount = 0
         setDiscoverable()
 
         Log.d(TAG, "Attempting HID connect to ${device.name} ($address)")
@@ -229,8 +251,19 @@ class BluetoothHidService : Service() {
 
     private fun initializeHidDevice() {
         Log.d(TAG, "Initializing HID device")
+
+        // Timeout: if getProfileProxy never fires, clean up and report failure
+        val proxyTimeout = Runnable {
+            if (hidDevice == null && state is HidState.Unregistered) {
+                Log.e(TAG, "getProfileProxy timed out after ${HID_PROXY_TIMEOUT_MS}ms")
+                onRegistrationStateChanged?.invoke(false)
+            }
+        }
+        mainHandler.postDelayed(proxyTimeout, HID_PROXY_TIMEOUT_MS)
+
         bluetoothAdapter?.getProfileProxy(this, object : BluetoothProfile.ServiceListener {
             override fun onServiceConnected(profile: Int, proxy: BluetoothProfile) {
+                mainHandler.removeCallbacks(proxyTimeout)
                 if (profile == BluetoothProfile.HID_DEVICE) {
                     hidDevice = proxy as BluetoothHidDevice
                     Log.d(TAG, "HID device proxy obtained")
@@ -302,9 +335,14 @@ class BluetoothHidService : Service() {
                 super.onConnectionStateChanged(device, connState)
                 when (connState) {
                     BluetoothProfile.STATE_CONNECTED -> {
-                        val name = device?.name
-                        state = HidState.Connected(device!!, name)
+                        val device = device ?: run {
+                            Log.e(TAG, "STATE_CONNECTED with null device — ignoring")
+                            return
+                        }
+                        val name = device.name
+                        state = HidState.Connected(device, name)
                         userInitiatedDisconnect = false
+                        reconnectRetryCount = 0
 
                         // Persist last connected device
                         prefs.edit()
@@ -315,9 +353,15 @@ class BluetoothHidService : Service() {
                         Log.d(TAG, "Connected to: $name")
 
                         // Create senders
-                        keyboardSender = KeyboardSender(hidDevice!!, device)
-                        mouseSender = MouseSender(hidDevice!!, device)
-                        tvRemoteSender = TvRemoteSender(hidDevice!!, device, keyboardSender!!)
+                        keyboardSender = KeyboardSender(hidDevice!!, device).also {
+                            it.onSendError = onSendError
+                        }
+                        mouseSender = MouseSender(hidDevice!!, device).also {
+                            it.onSendError = onSendError
+                        }
+                        tvRemoteSender = TvRemoteSender(hidDevice!!, device, keyboardSender!!).also {
+                            it.onSendError = onSendError
+                        }
 
                         // Set connection policy for auto-reconnect (API 33+)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -372,6 +416,10 @@ class BluetoothHidService : Service() {
                     Log.w(TAG, "Failed to send GET_REPORT reply: ${e.message}")
                 }
             }
+
+            // NOTE: BluetoothHidDevice.Callback does not have an onError method.
+            // HID errors are surfaced through onConnectionStateChanged(DISCONNECTED)
+            // which is already handled above with reconnect logic.
         }
 
         state = HidState.Registering
@@ -420,13 +468,24 @@ class BluetoothHidService : Service() {
 
     private fun scheduleReconnect() {
         val address = getLastDeviceAddress() ?: return
-        Log.d(TAG, "Scheduling reconnect to $address")
+        if (reconnectRetryCount >= MAX_RECONNECT_RETRIES) {
+            Log.w(TAG, "Reconnect retries exhausted ($MAX_RECONNECT_RETRIES) for $address")
+            return
+        }
+
+        // Exponential backoff: 2s, 4s, 8s, 16s, 30s (capped)
+        val delay = minOf(
+            RECONNECT_BASE_DELAY_MS * (1L shl reconnectRetryCount),
+            RECONNECT_MAX_DELAY_MS
+        )
+        reconnectRetryCount++
+        Log.d(TAG, "Scheduling reconnect attempt $reconnectRetryCount/$MAX_RECONNECT_RETRIES to $address in ${delay}ms")
 
         mainHandler.postDelayed({
             val hd = hidDevice ?: return@postDelayed
             if (state is HidState.Connected || userInitiatedDisconnect) return@postDelayed
             tryConnectToLastDevice()
-        }, 2500)
+        }, delay)
     }
 
     private fun tryConnectToLastDevice(): Boolean {
@@ -436,6 +495,9 @@ class BluetoothHidService : Service() {
         if (state is HidState.Connected) return true
         if (state !is HidState.Registered) {
             Log.w(TAG, "Cannot connect: HID not registered yet")
+            // Don't count this as a retry — registration may complete later
+            reconnectRetryCount = maxOf(0, reconnectRetryCount - 1)
+            scheduleReconnect()
             return false
         }
 
@@ -457,6 +519,8 @@ class BluetoothHidService : Service() {
         Log.d(TAG, "hd.connect returned $result")
         if (!result) {
             Log.d(TAG, "Phone-initiated connect failed — the host must discover and connect to this device")
+            // Schedule next retry with backoff
+            scheduleReconnect()
         }
         return result
     }

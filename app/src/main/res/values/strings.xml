@@ -42,6 +42,7 @@
     <string name="toast_macro_added">宏已添加</string>
     <string name="toast_macro_updated">宏已更新</string>
     <string name="toast_macro_deleted">宏已删除</string>
+    <string name="toast_send_error">发送失败: %s</string>
 
     <!-- Macro list -->
     <string name="macro_list_title">快捷命令</string>

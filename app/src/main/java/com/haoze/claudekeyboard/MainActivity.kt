@@ -358,6 +358,12 @@ class MainActivity : AppCompatActivity() {
         bluetoothViewModel.tvRemoteSender.observe(this) {
             updateFragmentEnabledStates()
         }
+
+        // Show a brief toast when a HID report fails to send, so the user
+        // knows their input was not delivered to the host.
+        bluetoothViewModel.sendError.observe(this) { message ->
+            Toast.makeText(this, getString(R.string.toast_send_error, message), Toast.LENGTH_SHORT).show()
+        }
     }
 
     /**

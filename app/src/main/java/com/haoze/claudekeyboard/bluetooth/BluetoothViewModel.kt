@@ -40,6 +40,9 @@ class BluetoothViewModel(application: Application) : AndroidViewModel(applicatio
     private val _registrationState = MutableLiveData(true)
     val registrationState: LiveData<Boolean> = _registrationState
 
+    private val _sendError = MutableLiveData<String>()
+    val sendError: LiveData<String> = _sendError
+
     // ---- Service binding ----
 
     private var hidService: BluetoothHidService? = null
@@ -84,6 +87,9 @@ class BluetoothViewModel(application: Application) : AndroidViewModel(applicatio
         }
         hidService?.setOnRegistrationStateChangedListener { isRegistered ->
             _registrationState.postValue(isRegistered)
+        }
+        hidService?.setOnSendErrorListener { message ->
+            _sendError.postValue(message)
         }
     }
 

@@ -16,12 +16,16 @@ open class KeyboardSender(
 ) {
     val keyboardReport = KeyboardReport()
 
+    /** Called when a HID report fails to send. Parameter is a human-readable message. */
+    var onSendError: ((String) -> Unit)? = null
+
     /**
      * Send the current keyboard report to the host.
      */
     protected open fun sendKeys() {
         if (!hidDevice.sendReport(host, KeyboardReport.ID, keyboardReport.bytes.copyOfRange(1, keyboardReport.bytes.size))) {
             Log.e(TAG, "Report wasn't sent")
+            onSendError?.invoke("Keyboard report send failed")
         }
     }
 
@@ -32,6 +36,7 @@ open class KeyboardSender(
         keyboardReport.reset()
         if (!hidDevice.sendReport(host, KeyboardReport.ID, keyboardReport.bytes.copyOfRange(1, keyboardReport.bytes.size))) {
             Log.e(TAG, "Null report wasn't sent")
+            onSendError?.invoke("Keyboard null report send failed")
         }
     }
 
@@ -88,6 +93,7 @@ open class KeyboardSender(
         report.key1 = keyCode
         if (!hidDevice.sendReport(host, KeyboardReport.ID, report.bytes.copyOfRange(1, report.bytes.size))) {
             Log.e(TAG, "Report wasn't sent")
+            onSendError?.invoke("Keyboard report send failed")
         }
     }
 
@@ -98,6 +104,7 @@ open class KeyboardSender(
         val report = KeyboardReport()  // all zeros by default
         if (!hidDevice.sendReport(host, KeyboardReport.ID, report.bytes.copyOfRange(1, report.bytes.size))) {
             Log.e(TAG, "Null report wasn't sent")
+            onSendError?.invoke("Keyboard null report send failed")
         }
     }
 

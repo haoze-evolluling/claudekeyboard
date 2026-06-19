@@ -21,6 +21,9 @@ class TvRemoteSender(
     private val keyboardSender: KeyboardSender
 ) {
 
+    /** Called when a HID report fails to send. Parameter is a human-readable message. */
+    var onSendError: ((String) -> Unit)? = null
+
     /** D-pad up */
     fun sendUp() = sendKeyboardKey(KeyboardSender.KEY_UP)
 
@@ -79,6 +82,7 @@ class TvRemoteSender(
     private fun sendConsumerReport(report: ConsumerReport) {
         if (!hidDevice.sendReport(host, ConsumerReport.ID, report.bytes.copyOfRange(1, report.bytes.size))) {
             Log.e(TAG, "Consumer report wasn't sent")
+            onSendError?.invoke("Consumer report send failed")
         }
     }
 
