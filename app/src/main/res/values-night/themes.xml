@@ -1,5 +1,27 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Dialog theme overlay - Dark Mode -->
+    <style name="ThemeOverlay.Claudekeyboard.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">@color/home_card</item>
+        <item name="colorSurfaceContainerLow">@color/home_card</item>
+        <item name="colorSurfaceContainer">@color/home_soft_panel</item>
+        <item name="colorSurfaceContainerHigh">@color/home_soft_panel</item>
+        <item name="colorSurfaceContainerHighest">@color/home_soft_panel</item>
+        <item name="android:windowBackground">@color/home_card</item>
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="elevationOverlayColor">@color/home_card</item>
+    </style>
+
+    <style name="ThemeOverlay.Claudekeyboard.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="colorSurface">@color/home_card</item>
+        <item name="colorSurfaceContainerLow">@color/home_card</item>
+        <item name="colorSurfaceContainer">@color/home_soft_panel</item>
+        <item name="colorSurfaceContainerHigh">@color/home_soft_panel</item>
+        <item name="colorSurfaceContainerHighest">@color/home_soft_panel</item>
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="elevationOverlayColor">@color/home_card</item>
+    </style>
+
     <style name="Theme.Claudekeyboard" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary -->
         <item name="colorPrimary">@color/primary</item>
