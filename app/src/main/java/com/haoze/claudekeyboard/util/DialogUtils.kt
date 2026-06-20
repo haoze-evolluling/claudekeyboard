@@ -2,9 +2,10 @@ package com.haoze.claudekeyboard.util
 
 import android.app.Dialog
 import android.content.Context
-import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.util.TypedValue
+import androidx.core.content.ContextCompat
+import com.haoze.claudekeyboard.R
 
 /**
  * Utility functions for dialog background styling and theme helpers.
@@ -31,7 +32,7 @@ fun Dialog.fixM3Background() {
 
     val drawable = GradientDrawable().apply {
         shape = GradientDrawable.RECTANGLE
-        setColor(Color.WHITE)
+        setColor(ContextCompat.getColor(context, R.color.home_card))
         this.cornerRadius = cornerRadius
     }
     window.decorView.background = drawable
