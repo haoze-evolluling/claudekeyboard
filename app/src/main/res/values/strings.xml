@@ -53,6 +53,11 @@
     <string name="back">返回</string>
     <string name="settings_reset_macros">重置宏为默认值</string>
     <string name="settings_section_data">数据管理</string>
+    <string name="settings_section_connection">连接</string>
+    <string name="settings_auto_connect_launch">启动时自动连接上次设备</string>
+    <string name="settings_auto_reconnect">断线后自动重连</string>
+    <string name="settings_section_touchpad">触控板</string>
+    <string name="settings_touchpad_sensitivity">默认灵敏度</string>
     <string name="dialog_reset_macros_confirm">确定要重置所有宏为默认值吗？自定义宏将被删除。</string>
     <string name="dialog_reset">重置</string>
     <string name="switch_send_enter">发送回车</string>
