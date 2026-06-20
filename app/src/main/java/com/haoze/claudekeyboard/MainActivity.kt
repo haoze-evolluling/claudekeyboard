@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -21,6 +22,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.slider.Slider
@@ -79,6 +81,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val prefs = getSharedPreferences("settings_prefs", Context.MODE_PRIVATE)
+        val themeMode = prefs.getString("theme_mode", "MODE_SYSTEM") ?: "MODE_SYSTEM"
+        AppCompatDelegate.setDefaultNightMode(
+            when (themeMode) {
+                "MODE_LIGHT" -> AppCompatDelegate.MODE_NIGHT_NO
+                "MODE_DARK" -> AppCompatDelegate.MODE_NIGHT_YES
+                else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            }
+        )
         setContentView(R.layout.activity_main)
 
         // Check Bluetooth support
@@ -425,6 +436,32 @@ class MainActivity : AppCompatActivity() {
             val intVal = value.toInt()
             tvSensitivityValue.text = intVal.toString()
             prefs.edit().putInt("touchpad_sensitivity", intVal).apply()
+        }
+
+        val toggleTheme = findViewById<MaterialButtonToggleGroup>(R.id.toggle_theme_mode)
+        val themeMode = prefs.getString("theme_mode", "MODE_SYSTEM") ?: "MODE_SYSTEM"
+        toggleTheme.check(
+            when (themeMode) {
+                "MODE_LIGHT" -> R.id.btn_theme_light
+                "MODE_DARK" -> R.id.btn_theme_dark
+                else -> R.id.btn_theme_system
+            }
+        )
+        toggleTheme.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            val mode = when (checkedId) {
+                R.id.btn_theme_light -> "MODE_LIGHT"
+                R.id.btn_theme_dark -> "MODE_DARK"
+                else -> "MODE_SYSTEM"
+            }
+            prefs.edit().putString("theme_mode", mode).apply()
+            AppCompatDelegate.setDefaultNightMode(
+                when (mode) {
+                    "MODE_LIGHT" -> AppCompatDelegate.MODE_NIGHT_NO
+                    "MODE_DARK" -> AppCompatDelegate.MODE_NIGHT_YES
+                    else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                }
+            )
         }
     }
 
