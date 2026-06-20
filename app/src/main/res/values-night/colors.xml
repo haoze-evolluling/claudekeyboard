@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- M3 Color Roles - Dark Mode (seed: #315CFF) -->
+    <color name="primary">#859EFF</color>
+    <color name="on_primary">#07164E</color>
+    <color name="primary_container">#07164E</color>
+    <color name="on_primary_container">#DCE3FF</color>
+
+    <color name="secondary">#C1C9DD</color>
+    <color name="on_secondary">#2B334B</color>
+    <color name="secondary_container">#414A62</color>
+    <color name="on_secondary_container">#DCE3F9</color>
+
+    <color name="tertiary">#FFB0D0</color>
+    <color name="on_tertiary">#611A48</color>
+    <color name="tertiary_container">#7C315C</color>
+    <color name="on_tertiary_container">#FFD8EC</color>
+
+    <color name="error">#FFB4AB</color>
+    <color name="on_error">#690005</color>
+    <color name="error_container">#93000A</color>
+    <color name="on_error_container">#FFB4AB</color>
+
+    <color name="surface">#121318</color>
+    <color name="on_surface">#E3E2E7</color>
+    <color name="on_surface_variant">#C4C6D0</color>
+    <color name="surface_variant">#44464F</color>
+
+    <color name="outline">#8E9099</color>
+    <color name="outline_variant">#44464F</color>
+</resources>
