@@ -3,7 +3,6 @@ package com.haoze.claudekeyboard.ui.device
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
@@ -67,7 +66,7 @@ class DeviceListBottomSheetFragment : BottomSheetDialogFragment() {
     override fun onStart() {
         super.onStart()
         val dlg = dialog ?: return
-        val bgColor = Color.WHITE
+        val bgColor = ContextCompat.getColor(requireContext(), R.color.home_card)
         val cornerRadius = 12f * resources.displayMetrics.density // 12dp in pixels
         // Fix bottom sheet background only (not the entire window)
         dlg.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.let { sheet ->
