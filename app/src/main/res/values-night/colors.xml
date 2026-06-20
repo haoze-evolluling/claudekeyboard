@@ -43,12 +43,12 @@
     <color name="home_touchpad_accent">#4DCCCA</color>
     <color name="home_claude_accent">#C084FC</color>
     <color name="home_settings_accent">#9CA3AF</color>
-    <color name="home_keyboard_icon_bg">#2A2D3A</color>
-    <color name="home_touchpad_icon_bg">#1E2E2C</color>
-    <color name="home_claude_icon_bg">#2D2240</color>
-    <color name="home_settings_icon_bg">#252630</color>
-    <color name="home_tvremote_icon_bg">#2D2025</color>
-    <color name="home_bluetooth_badge_bg">#1E2A4A</color>
+    <color name="home_keyboard_icon_bg">#3B3F4D</color>
+    <color name="home_touchpad_icon_bg">#33403D</color>
+    <color name="home_claude_icon_bg">#3D3450</color>
+    <color name="home_settings_icon_bg">#353840</color>
+    <color name="home_tvremote_icon_bg">#3D3238</color>
+    <color name="home_bluetooth_badge_bg">#33405A</color>
 
     <!-- Button accent colors -->
     <color name="positive_green">#81C784</color>
