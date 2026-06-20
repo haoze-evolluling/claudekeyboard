@@ -75,8 +75,8 @@ class TouchpadFragment : Fragment() {
     private val TWO_FINGER_TAP_TIMEOUT = 300L  // milliseconds
     private val TWO_FINGER_TAP_MAX_DISTANCE = 50f  // pixels
     // SharedPreferences key
-    private val PREFS_NAME = "touchpad_prefs"
-    private val KEY_SENSITIVITY = "sensitivity"
+    private val PREFS_NAME = "settings_prefs"
+    private val KEY_SENSITIVITY = "touchpad_sensitivity"
 
     override fun onCreateView(
         inflater: LayoutInflater,
