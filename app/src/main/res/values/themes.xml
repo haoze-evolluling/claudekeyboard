@@ -22,7 +22,7 @@
         <item name="elevationOverlayColor">@color/home_card</item>
     </style>
 
-    <style name="Theme.Claudekeyboard" parent="Theme.Material3.Light.NoActionBar">
+    <style name="Theme.Claudekeyboard" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/on_primary</item>
