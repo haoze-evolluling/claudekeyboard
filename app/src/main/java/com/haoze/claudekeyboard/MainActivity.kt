@@ -39,8 +39,6 @@ import com.haoze.claudekeyboard.ui.macro.MacroEditDialogFragment
 import com.haoze.claudekeyboard.ui.settings.SettingsAdapter
 import com.haoze.claudekeyboard.ui.settings.SettingsItem
 import android.animation.ObjectAnimator
-import android.graphics.RenderEffect
-import android.graphics.Shader
 import com.haoze.claudekeyboard.ui.touchpad.TouchpadFragment
 import com.haoze.claudekeyboard.ui.tvremote.TvRemoteFragment
 import com.haoze.claudekeyboard.util.fixM3Background
@@ -415,13 +413,6 @@ class MainActivity : AppCompatActivity() {
         btnBack.setOnClickListener {
             it.performKeyClick()
             navigateToHome()
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            cardTitle.setRenderEffect(
-                RenderEffect.createBlurEffect(25f, 25f, Shader.TileMode.CLAMP)
-            )
-            cardTitle.setBackgroundColor(0x88F0F0F5.toInt())
         }
 
         val rvSettings = findViewById<RecyclerView>(R.id.rv_settings)
