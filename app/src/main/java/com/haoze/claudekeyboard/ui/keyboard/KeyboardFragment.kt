@@ -485,7 +485,7 @@ class KeyboardFragment : Fragment() {
 
     /**
      * Enable or disable the keyboard rows (e.g., when connection state changes).
-     * The back-to-Claude button is always enabled.
+     * The back-to-home button is always enabled.
      */
     fun setKeyboardEnabled(enabled: Boolean) {
         val rowIds = listOf(

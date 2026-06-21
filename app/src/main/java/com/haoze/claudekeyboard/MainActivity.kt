@@ -64,17 +64,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var macroRecyclerView: RecyclerView
     private lateinit var macroAdapter: MacroButtonAdapter
     private lateinit var btnSettings: ImageButton
-    private lateinit var tvClaudeStatus: TextView
+    private lateinit var tvAgentStatus: TextView
     private lateinit var tvHomeStatus: TextView
     private var deviceListDialog: DeviceListBottomSheetFragment? = null
 
     // Navigation
     private lateinit var contentHome: View
-    private lateinit var contentClaude: View
+    private lateinit var contentAgent: View
     private lateinit var contentKeyboard: View
     private lateinit var contentTouchpad: View
     private lateinit var contentSettings: View
-    private val allContentViews by lazy { listOf(contentHome, contentClaude, contentKeyboard, contentTouchpad, contentTvRemote, contentSettings) }
+    private val allContentViews by lazy { listOf(contentHome, contentAgent, contentKeyboard, contentTouchpad, contentTvRemote, contentSettings) }
     private var keyboardFragment: KeyboardFragment? = null
     private var touchpadFragment: TouchpadFragment? = null
     private lateinit var contentTvRemote: View
@@ -205,19 +205,19 @@ class MainActivity : AppCompatActivity() {
         btnEnter = findViewById(R.id.btn_enter)
         macroRecyclerView = findViewById(R.id.rv_macros)
         contentHome = findViewById(R.id.content_home)
-        contentClaude = findViewById(R.id.content_claude)
+        contentAgent = findViewById(R.id.content_agent)
         contentKeyboard = findViewById(R.id.content_keyboard)
         contentTouchpad = findViewById(R.id.content_touchpad)
         contentSettings = findViewById(R.id.content_settings)
         contentTvRemote = findViewById(R.id.content_tvremote)
-        tvClaudeStatus = findViewById(R.id.tv_claude_status)
+        tvAgentStatus = findViewById(R.id.tv_agent_status)
         tvHomeStatus = findViewById(R.id.tv_home_status)
         btnSettings = findViewById(R.id.btn_settings)
         btnSettings.setOnClickListener {
             it.performKeyClick()
             navigateToPage(contentSettings, landscape = false)
         }
-        findViewById<ImageButton>(R.id.btn_back_claude).setOnClickListener {
+        findViewById<ImageButton>(R.id.btn_back_agent).setOnClickListener {
             it.performKeyClick()
             navigateToHome()
         }
@@ -238,7 +238,7 @@ class MainActivity : AppCompatActivity() {
                 "keyboard" -> navigateToPage(contentKeyboard, landscape = true)
                 "touchpad" -> navigateToPage(contentTouchpad, landscape = true)
                 "tvremote" -> navigateToPage(contentTvRemote, landscape = false)
-                "claude" -> navigateToPage(contentClaude, landscape = false)
+                "agent" -> navigateToPage(contentAgent, landscape = false)
                 "settings" -> navigateToPage(contentSettings, landscape = false)
             }
         }
@@ -274,11 +274,11 @@ class MainActivity : AppCompatActivity() {
                 iconBackgroundRes = R.drawable.bg_home_icon_tvremote
             ),
             HomeItem.Entry(
-                id = "claude",
-                title = getString(R.string.home_claude_title),
-                subtitle = getString(R.string.home_claude_subtitle),
+                id = "agent",
+                title = getString(R.string.home_agent_title),
+                subtitle = getString(R.string.home_agent_subtitle),
                 iconRes = R.drawable.baseline_terminal_24,
-                iconBackgroundRes = R.drawable.bg_home_icon_claude
+                iconBackgroundRes = R.drawable.bg_home_icon_agent
             ),
             HomeItem.Entry(
                 id = "settings",
@@ -557,12 +557,12 @@ class MainActivity : AppCompatActivity() {
     private fun updateStatusUI(isConnected: Boolean, deviceName: String?) {
         if (isConnected) {
             enableAllButtons()
-            tvClaudeStatus.text = getString(R.string.device_name_status, deviceName ?: getString(R.string.status_unknown_device), getString(R.string.status_connected_label))
-            tvClaudeStatus.setTextColor(ContextCompat.getColor(this, R.color.primary))
+            tvAgentStatus.text = getString(R.string.device_name_status, deviceName ?: getString(R.string.status_unknown_device), getString(R.string.status_connected_label))
+            tvAgentStatus.setTextColor(ContextCompat.getColor(this, R.color.primary))
         } else {
             disableAllButtons()
-            tvClaudeStatus.text = getString(R.string.status_not_connected)
-            tvClaudeStatus.setTextColor(ContextCompat.getColor(this, R.color.on_surface_variant))
+            tvAgentStatus.text = getString(R.string.status_not_connected)
+            tvAgentStatus.setTextColor(ContextCompat.getColor(this, R.color.on_surface_variant))
         }
         // Update fragment enabled states
         updateFragmentEnabledStates()

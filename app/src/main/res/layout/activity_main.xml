@@ -16,8 +16,8 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <!-- Claude Tab Content -->
-        <include layout="@layout/content_claude" />
+        <!-- Agent Tab Content -->
+        <include layout="@layout/content_agent" />
 
         <!-- Keyboard Tab Content -->
         <FrameLayout
@@ -85,6 +85,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_home_hero"
+                    android:elevation="4dp"
                     android:padding="24dp">
 
                     <TextView
@@ -143,7 +144,7 @@
                         android:layout_marginTop="20dp"
                         app:cardBackgroundColor="@color/home_soft_panel"
                         app:cardCornerRadius="22dp"
-                        app:cardElevation="0dp"
+                        app:cardElevation="2dp"
                         app:strokeColor="@android:color/transparent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"

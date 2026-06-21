@@ -106,13 +106,13 @@
     <string name="home_system">系统</string>
     <string name="home_hero_subtitle">手机即键盘，指尖控全场</string>
     <string name="home_connection_status">连接状态</string>
-    <string name="home_claude_chip">Claude</string>
+    <string name="home_agent_chip">Agent</string>
     <string name="home_keyboard_title">键盘</string>
     <string name="home_keyboard_subtitle">蓝牙 HID 键盘输入</string>
     <string name="home_touchpad_title">触控板</string>
     <string name="home_touchpad_subtitle">蓝牙 HID 鼠标控制</string>
-    <string name="home_claude_title">Claude 助手</string>
-    <string name="home_claude_subtitle">快速发送常用命令</string>
+    <string name="home_agent_title">Agent 快捷按钮</string>
+    <string name="home_agent_subtitle">快速发送常用命令</string>
     <string name="home_settings_title">设置</string>
     <string name="home_settings_subtitle">主题与数据管理</string>
     <string name="nav_back">返回</string>

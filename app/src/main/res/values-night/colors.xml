@@ -41,11 +41,11 @@
     <color name="home_on_hero_variant">#D9E5FA</color>
     <color name="home_keyboard_accent">#859EFF</color>
     <color name="home_touchpad_accent">#4DCCCA</color>
-    <color name="home_claude_accent">#C084FC</color>
+    <color name="home_agent_accent">#C084FC</color>
     <color name="home_settings_accent">#9CA3AF</color>
     <color name="home_keyboard_icon_bg">#3B3F4D</color>
     <color name="home_touchpad_icon_bg">#33403D</color>
-    <color name="home_claude_icon_bg">#3D3450</color>
+    <color name="home_agent_icon_bg">#3D3450</color>
     <color name="home_settings_icon_bg">#353840</color>
     <color name="home_tvremote_icon_bg">#3D3238</color>
     <color name="home_bluetooth_badge_bg">#33405A</color>
