@@ -306,21 +306,25 @@ class MainActivity : AppCompatActivity() {
             ?.setInterpolator(AccelerateDecelerateInterpolator())
             ?.withEndAction {
                 oldView.visibility = View.GONE
-                target.apply {
-                    visibility = View.VISIBLE
-                    scaleX = 0.8f
-                    scaleY = 0.8f
-                    alpha = 0f
-                    animate()
-                        .scaleX(1f).scaleY(1f).alpha(1f)
-                        .setDuration(300)
-                        .setInterpolator(AccelerateDecelerateInterpolator())
-                        .start()
-                }
+                startIncomingAnimation(target)
             }
-            ?.start()
+            ?.start() ?: startIncomingAnimation(target)
 
         allContentViews.forEach { if (it != target && it != oldView) it.visibility = View.GONE }
+    }
+
+    private fun startIncomingAnimation(target: View) {
+        target.apply {
+            visibility = View.VISIBLE
+            scaleX = 0.8f
+            scaleY = 0.8f
+            alpha = 0f
+            animate()
+                .scaleX(1f).scaleY(1f).alpha(1f)
+                .setDuration(300)
+                .setInterpolator(AccelerateDecelerateInterpolator())
+                .start()
+        }
     }
 
     fun navigateToPage(targetContent: View, landscape: Boolean) {
