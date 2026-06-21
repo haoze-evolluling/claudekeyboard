@@ -345,8 +345,7 @@ class MainActivity : AppCompatActivity() {
      * Observe ViewModel LiveData for connection state changes.
      */
     private fun observeViewModel() {
-        bluetoothViewModel.connectionState.observe(this) { state ->
-            val isConnected = state == BluetoothViewModel.ConnectionState.CONNECTED
+        bluetoothViewModel.connectionState.observe(this) { isConnected ->
             val deviceName = bluetoothViewModel.connectedDeviceName.value
             updateStatusUI(isConnected, deviceName)
             updateKeepScreenOn(isConnected)

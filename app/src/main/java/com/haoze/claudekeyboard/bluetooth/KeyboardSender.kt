@@ -3,90 +3,13 @@ package com.haoze.claudekeyboard.bluetooth
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHidDevice
 import android.util.Log
-import android.view.KeyEvent
 
-/**
- * Sends HID keyboard reports via Bluetooth.
- * Ported from Kontroller project, extended with char-to-HID mapping.
- */
-@Suppress("MemberVisibilityCanBePrivate")
-open class KeyboardSender(
+class KeyboardSender(
     val hidDevice: BluetoothHidDevice,
     val host: BluetoothDevice
 ) {
-    val keyboardReport = KeyboardReport()
-
-    /** Called when a HID report fails to send. Parameter is a human-readable message. */
     var onSendError: ((String) -> Unit)? = null
 
-    /**
-     * Send the current keyboard report to the host.
-     */
-    protected open fun sendKeys() {
-        if (!hidDevice.sendReport(host, KeyboardReport.ID, keyboardReport.bytes.copyOfRange(1, keyboardReport.bytes.size))) {
-            Log.e(TAG, "Report wasn't sent")
-            onSendError?.invoke("Keyboard report send failed")
-        }
-    }
-
-    /**
-     * Send an all-zeros release report.
-     */
-    fun sendNullKeys() {
-        keyboardReport.reset()
-        if (!hidDevice.sendReport(host, KeyboardReport.ID, keyboardReport.bytes.copyOfRange(1, keyboardReport.bytes.size))) {
-            Log.e(TAG, "Null report wasn't sent")
-            onSendError?.invoke("Keyboard null report send failed")
-        }
-    }
-
-    /**
-     * Set modifier keys from an Android KeyEvent.
-     */
-    protected open fun setModifiers(event: KeyEvent) {
-        if (event.isShiftPressed) keyboardReport.leftShift = true
-        if (event.isAltPressed) keyboardReport.leftAlt = true
-        if (event.isCtrlPressed) keyboardReport.leftControl = true
-        if (event.isMetaPressed) keyboardReport.leftGui = true
-    }
-
-    /**
-     * Send a key press then release (for KeyEvent-based input).
-     */
-    protected open fun customSender(modifierCheckedState: Int) {
-        sendKeys()
-        if (modifierCheckedState == 0) sendNullKeys()
-        else {
-            keyboardReport.key1 = 0.toByte()
-            sendKeys()
-        }
-    }
-
-    /**
-     * Handle a key event: map to HID code, set modifiers, send.
-     * @return true if the key was handled
-     */
-    fun keyEventHandler(keyEventCode: Int, event: KeyEvent, modifierCheckedState: Int): Boolean {
-        val byteKey = KeyboardReport.KeyEventMap[keyEventCode] ?: return false
-
-        setModifiers(event)
-        // Special handling for @ # * which need shift
-        if (event.keyCode == KeyEvent.KEYCODE_AT ||
-            event.keyCode == KeyEvent.KEYCODE_POUND ||
-            event.keyCode == KeyEvent.KEYCODE_STAR
-        ) {
-            keyboardReport.leftShift = true
-        }
-        keyboardReport.key1 = byteKey.toByte()
-        customSender(modifierCheckedState)
-        return true
-    }
-
-    // ---- Convenience methods for direct key sending (no KeyEvent needed) ----
-
-    /**
-     * Send a single HID report using a local report instance (thread-safe).
-     */
     private fun sendReportLocal(modifier: Byte, keyCode: Byte) {
         val report = KeyboardReport()
         report.bytes[1] = modifier
@@ -97,35 +20,20 @@ open class KeyboardSender(
         }
     }
 
-    /**
-     * Send an all-zeros release report using a local report instance (thread-safe).
-     */
     private fun sendNullReportLocal() {
-        val report = KeyboardReport()  // all zeros by default
+        val report = KeyboardReport()
         if (!hidDevice.sendReport(host, KeyboardReport.ID, report.bytes.copyOfRange(1, report.bytes.size))) {
             Log.e(TAG, "Null report wasn't sent")
             onSendError?.invoke("Keyboard null report send failed")
         }
     }
 
-    /**
-     * Send a key press with optional modifier, then release.
-     * Uses local report instances to avoid shared-state race conditions.
-     * @param modifier Modifier byte (0x00 for none, 0x01 for left ctrl, etc.)
-     * @param keyCode HID key code
-     * @param delayMs Delay between press and release
-     */
     fun sendKeyPress(modifier: Byte, keyCode: Byte, delayMs: Long = 30) {
         sendReportLocal(modifier, keyCode)
         Thread.sleep(delayMs)
         sendNullReportLocal()
     }
 
-    /**
-     * Type a string character by character.
-     * @param text The string to type
-     * @param delayMs Delay between each character
-     */
     fun sendText(text: String, delayMs: Long = 50) {
         for (char in text) {
             val hidCode = charToHidCode(char) ?: continue
@@ -134,10 +42,6 @@ open class KeyboardSender(
         }
     }
 
-    /**
-     * Type a command string and press Enter.
-     * @param command The command to send
-     */
     fun sendMacro(command: String) {
         sendText(command)
         sendKeyPress(0x00, KEY_ENTER)
@@ -146,7 +50,6 @@ open class KeyboardSender(
     companion object {
         const val TAG = "KeyboardSender"
 
-        // Modifier bit masks
         const val MODIFIER_CTRL_LEFT: Byte = 0x01
         const val MODIFIER_SHIFT_LEFT: Byte = 0x02
         const val MODIFIER_ALT_LEFT: Byte = 0x04
@@ -156,7 +59,6 @@ open class KeyboardSender(
         const val MODIFIER_ALT_RIGHT: Byte = 0x40
         const val MODIFIER_GUI_RIGHT: Byte = 0x80.toByte()
 
-        // Common HID key codes
         const val KEY_A: Byte = 0x04
         const val KEY_B: Byte = 0x05
         const val KEY_C: Byte = 0x06
@@ -213,15 +115,11 @@ open class KeyboardSender(
         const val KEY_SLASH: Byte = 0x38
         const val KEY_CAPS_LOCK: Byte = 0x39
 
-        // Arrow keys
         const val KEY_RIGHT: Byte = 0x4F
         const val KEY_LEFT: Byte = 0x50
         const val KEY_DOWN: Byte = 0x51
         const val KEY_UP: Byte = 0x52
 
-        /**
-         * Convert a character to (modifier, hidKeyCode) pair.
-         */
         fun charToHidCode(char: Char): Pair<Byte, Byte>? {
             return when (char) {
                 'a' -> Pair(0x00, 0x04); 'b' -> Pair(0x00, 0x05); 'c' -> Pair(0x00, 0x06)

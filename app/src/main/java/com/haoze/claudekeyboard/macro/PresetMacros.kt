@@ -13,10 +13,10 @@ object PresetMacros {
      */
     fun getPresets(context: Context): List<Macro> {
         return listOf(
-            Macro.preset("/clear", "/clear", 1, context.getString(R.string.preset_clear_desc), sendEnter = true),
-            Macro.preset("/compact", "/compact", 2, context.getString(R.string.preset_compact_desc), sendEnter = true),
-            Macro.preset("/model", "/model", 3, context.getString(R.string.preset_model_desc), sendEnter = true),
-            Macro.preset("/btw", "/btw", 4, context.getString(R.string.preset_btw_desc), sendEnter = true)
+            Macro("preset__clear", "/clear", context.getString(R.string.preset_clear_desc), isPreset = true, sortOrder = 1, sendEnter = true),
+            Macro("preset__compact", "/compact", context.getString(R.string.preset_compact_desc), isPreset = true, sortOrder = 2, sendEnter = true),
+            Macro("preset__model", "/model", context.getString(R.string.preset_model_desc), isPreset = true, sortOrder = 3, sendEnter = true),
+            Macro("preset__btw", "/btw", context.getString(R.string.preset_btw_desc), isPreset = true, sortOrder = 4, sendEnter = true)
         )
     }
 }

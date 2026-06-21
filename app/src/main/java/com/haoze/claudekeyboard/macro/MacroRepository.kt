@@ -44,7 +44,7 @@ class MacroRepository(private val context: Context) {
      * Add a custom macro.
      */
     fun addCustomMacro(label: String, description: String, command: String, sendEnter: Boolean = false): Macro {
-        val macro = Macro.custom(label, command, description = description, sendEnter = sendEnter)
+        val macro = Macro(label = label, command = command, description = description, isPreset = false, sortOrder = 1000, sendEnter = sendEnter)
         val macros = getAllMacros().toMutableList()
         macros.add(macro)
         saveMacrosToStorage(macros)

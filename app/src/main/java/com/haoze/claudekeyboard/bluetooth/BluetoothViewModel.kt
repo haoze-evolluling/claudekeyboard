@@ -22,8 +22,8 @@ class BluetoothViewModel(application: Application) : AndroidViewModel(applicatio
 
     // ---- Observable state ----
 
-    private val _connectionState = MutableLiveData(ConnectionState.DISCONNECTED)
-    val connectionState: LiveData<ConnectionState> = _connectionState
+    private val _connectionState = MutableLiveData(false)
+    val connectionState: LiveData<Boolean> = _connectionState
 
     private val _connectedDeviceName = MutableLiveData<String?>()
     val connectedDeviceName: LiveData<String?> = _connectedDeviceName
@@ -63,7 +63,7 @@ class BluetoothViewModel(application: Application) : AndroidViewModel(applicatio
         override fun onServiceDisconnected(name: ComponentName?) {
             hidService = null
             isBound = false
-            _connectionState.value = ConnectionState.DISCONNECTED
+            _connectionState.value = false
             _keyboardSender.value = null
             _mouseSender.value = null
             _tvRemoteSender.value = null
@@ -95,13 +95,13 @@ class BluetoothViewModel(application: Application) : AndroidViewModel(applicatio
 
     private fun updateConnectionState(isConnected: Boolean, deviceName: String?) {
         if (isConnected) {
-            _connectionState.postValue(ConnectionState.CONNECTED)
+            _connectionState.postValue(true)
             _connectedDeviceName.postValue(deviceName)
             _keyboardSender.postValue(hidService?.getKeyboardSender())
             _mouseSender.postValue(hidService?.getMouseSender())
             _tvRemoteSender.postValue(hidService?.getTvRemoteSender())
         } else {
-            _connectionState.postValue(ConnectionState.DISCONNECTED)
+            _connectionState.postValue(false)
             _connectedDeviceName.postValue(null)
             _keyboardSender.postValue(null)
             _mouseSender.postValue(null)
@@ -149,12 +149,5 @@ class BluetoothViewModel(application: Application) : AndroidViewModel(applicatio
             getApplication<Application>().unbindService(serviceConnection)
             isBound = false
         }
-    }
-
-    // ---- Connection state enum ----
-
-    enum class ConnectionState {
-        DISCONNECTED,
-        CONNECTED
     }
 }
