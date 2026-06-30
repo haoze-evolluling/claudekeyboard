@@ -12,6 +12,7 @@ import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
+import com.google.android.material.R as MaterialR
 import com.haoze.claudekeyboard.R
 import com.haoze.claudekeyboard.util.performKeyClick
 import kotlin.math.atan2
@@ -79,21 +80,21 @@ class CircularDpadView @JvmOverloads constructor(
             outerRadius = a.getDimension(R.styleable.CircularDpadView_outerRadius, 90f)
             innerRadius = a.getDimension(R.styleable.CircularDpadView_innerRadius, 32f)
             repeatDelay = a.getInteger(R.styleable.CircularDpadView_repeatDelay, 200).toLong()
-            ringColor = a.getColor(R.styleable.CircularDpadView_ringColor, resolveColor(R.attr.colorSurfaceVariant, Color.parseColor("#E8E8E8")))
-            ringBorderColor = a.getColor(R.styleable.CircularDpadView_ringBorderColor, resolveColor(R.attr.colorOutlineVariant, Color.parseColor("#D0D0D0")))
-            centerColor = a.getColor(R.styleable.CircularDpadView_centerColor, resolveColor(R.attr.colorSurface, Color.parseColor("#E8E8E8")))
-            centerBorderColor = a.getColor(R.styleable.CircularDpadView_centerBorderColor, resolveColor(R.attr.colorOutline, Color.parseColor("#D0D0D0")))
-            dividerColor = a.getColor(R.styleable.CircularDpadView_dividerColor, resolveColor(R.attr.colorOutlineVariant, Color.parseColor("#D0D0D0")))
-            iconColor = a.getColor(R.styleable.CircularDpadView_iconColor, resolveColor(R.attr.colorOnSurface, Color.parseColor("#6A6E7C")))
+            ringColor = a.getColor(R.styleable.CircularDpadView_ringColor, resolveColor(MaterialR.attr.colorSurfaceVariant, Color.parseColor("#E8E8E8")))
+            ringBorderColor = a.getColor(R.styleable.CircularDpadView_ringBorderColor, resolveColor(MaterialR.attr.colorOutlineVariant, Color.parseColor("#D0D0D0")))
+            centerColor = a.getColor(R.styleable.CircularDpadView_centerColor, resolveColor(MaterialR.attr.colorSurface, Color.parseColor("#E8E8E8")))
+            centerBorderColor = a.getColor(R.styleable.CircularDpadView_centerBorderColor, resolveColor(MaterialR.attr.colorOutline, Color.parseColor("#D0D0D0")))
+            dividerColor = a.getColor(R.styleable.CircularDpadView_dividerColor, resolveColor(MaterialR.attr.colorOutlineVariant, Color.parseColor("#D0D0D0")))
+            iconColor = a.getColor(R.styleable.CircularDpadView_iconColor, resolveColor(MaterialR.attr.colorOnSurface, Color.parseColor("#6A6E7C")))
             textColor = a.getColor(R.styleable.CircularDpadView_textColor, textColor)
             a.recycle()
         } ?: run {
-            ringColor = resolveColor(R.attr.colorSurfaceVariant, Color.parseColor("#E8E8E8"))
-            ringBorderColor = resolveColor(R.attr.colorOutlineVariant, Color.parseColor("#D0D0D0"))
-            centerColor = resolveColor(R.attr.colorSurface, Color.parseColor("#E8E8E8"))
-            centerBorderColor = resolveColor(R.attr.colorOutline, Color.parseColor("#D0D0D0"))
-            dividerColor = resolveColor(R.attr.colorOutlineVariant, Color.parseColor("#D0D0D0"))
-            iconColor = resolveColor(R.attr.colorOnSurface, Color.parseColor("#6A6E7C"))
+            ringColor = resolveColor(MaterialR.attr.colorSurfaceVariant, Color.parseColor("#E8E8E8"))
+            ringBorderColor = resolveColor(MaterialR.attr.colorOutlineVariant, Color.parseColor("#D0D0D0"))
+            centerColor = resolveColor(MaterialR.attr.colorSurface, Color.parseColor("#E8E8E8"))
+            centerBorderColor = resolveColor(MaterialR.attr.colorOutline, Color.parseColor("#D0D0D0"))
+            dividerColor = resolveColor(MaterialR.attr.colorOutlineVariant, Color.parseColor("#D0D0D0"))
+            iconColor = resolveColor(MaterialR.attr.colorOnSurface, Color.parseColor("#6A6E7C"))
         }
 
         if (textColor == 0) {

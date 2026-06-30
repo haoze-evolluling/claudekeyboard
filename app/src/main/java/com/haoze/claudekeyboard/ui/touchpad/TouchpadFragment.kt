@@ -77,6 +77,12 @@ class TouchpadFragment : Fragment() {
     private var twoFingerStartX = floatArrayOf(0f, 0f)
     private var twoFingerStartY = floatArrayOf(0f, 0f)
 
+    // Three-finger tap state
+    private var isThreeFingerGesture = false
+    private var threeFingerStartTime = 0L
+    private var threeFingerStartX = 0f
+    private var threeFingerStartY = 0f
+
     // Threshold constants
     private val TWO_FINGER_TAP_TIMEOUT = 300L  // milliseconds
     private val TWO_FINGER_TAP_MAX_DISTANCE = 50f  // pixels
@@ -187,6 +193,15 @@ class TouchpadFragment : Fragment() {
                     twoFingerStartY[0] = event.getY(0)
                     twoFingerStartX[1] = event.getX(1)
                     twoFingerStartY[1] = event.getY(1)
+                } else if (pointerCount == 3) {
+                    // Cancel scroll, start three-finger tracking
+                    cancelLongPress()
+                    if (isDragging) releaseDrag()
+                    isScrollMode = false
+                    isThreeFingerGesture = true
+                    threeFingerStartTime = SystemClock.uptimeMillis()
+                    threeFingerStartX = event.getX(0)
+                    threeFingerStartY = event.getY(0)
                 }
             }
 
@@ -293,7 +308,19 @@ class TouchpadFragment : Fragment() {
             MotionEvent.ACTION_UP -> {
                 cancelLongPress()
 
-                if (isDragging) {
+                if (isThreeFingerGesture) {
+                    val duration = SystemClock.uptimeMillis() - threeFingerStartTime
+                    val dx = event.x - threeFingerStartX
+                    val dy = event.y - threeFingerStartY
+                    val distance = sqrt(dx * dx + dy * dy)
+                    if (duration < tapMaxDuration && distance < tapMaxDistance) {
+                        getMouseSender()?.let { sender ->
+                            Thread { sender.sendMouseClick(MouseReport.BUTTON_MIDDLE) }.start()
+                        }
+                        view?.performKeyClick()
+                    }
+                    isThreeFingerGesture = false
+                } else if (isDragging) {
                     // Release drag (release left button)
                     releaseDrag()
                 } else if (!isScrollMode && pointerCount == 1) {
@@ -318,6 +345,7 @@ class TouchpadFragment : Fragment() {
                 cancelLongPress()
                 if (isDragging) releaseDrag()
                 isScrollMode = false
+                isThreeFingerGesture = false
             }
         }
 

@@ -103,6 +103,19 @@ class TvRemoteFragment : Fragment() {
         root.findViewById<ImageButton>(R.id.btn_power)?.setOnClickListener {
             it.performKeyClick(); flashLed(); send { sendPower() }
         }
+
+        root.findViewById<View>(R.id.btn_play_pause)?.setOnClickListener {
+            it.performKeyClick(); flashLed(); send { sendPlayPause() }
+        }
+        root.findViewById<View>(R.id.btn_next)?.setOnClickListener {
+            it.performKeyClick(); flashLed(); send { sendNext() }
+        }
+        root.findViewById<View>(R.id.btn_previous)?.setOnClickListener {
+            it.performKeyClick(); flashLed(); send { sendPrevious() }
+        }
+        root.findViewById<View>(R.id.btn_stop)?.setOnClickListener {
+            it.performKeyClick(); flashLed(); send { sendStop() }
+        }
     }
 
     fun setTvRemoteEnabled(enabled: Boolean) {
@@ -112,9 +125,10 @@ class TvRemoteFragment : Fragment() {
                 dpad.alpha = if (enabled) 1.0f else 0.4f
             }
             val imageButtons = listOf(
-                R.id.btn_back_to_home, R.id.btn_back, R.id.btn_assistant,
+                R.id.btn_back, R.id.btn_assistant,
                 R.id.btn_home, R.id.btn_mute, R.id.btn_power,
-                R.id.btn_volume_stack
+                R.id.btn_volume_stack,
+                R.id.btn_play_pause, R.id.btn_next, R.id.btn_previous, R.id.btn_stop
             )
             imageButtons.forEach { id ->
                 root.findViewById<View>(id)?.let { btn ->

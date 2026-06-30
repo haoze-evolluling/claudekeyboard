@@ -60,6 +60,18 @@ class TvRemoteSender(
     /** Power */
     fun sendPower() = sendConsumer(ConsumerReport.USAGE_POWER)
 
+    /** Play/Pause */
+    fun sendPlayPause() = sendConsumer(ConsumerReport.USAGE_PLAY_PAUSE)
+
+    /** Next track */
+    fun sendNext() = sendConsumer(ConsumerReport.USAGE_NEXT)
+
+    /** Previous track */
+    fun sendPrevious() = sendConsumer(ConsumerReport.USAGE_PREVIOUS)
+
+    /** Stop */
+    fun sendStop() = sendConsumer(ConsumerReport.USAGE_STOP)
+
     private fun sendKeyboardKey(keyCode: Byte) {
         Thread {
             keyboardSender.sendKeyPress(0x00, keyCode, PRESS_DURATION_MS)

@@ -128,8 +128,16 @@
     <string name="tvremote_mute">静音</string>
     <string name="tvremote_volume_up">音量+</string>
     <string name="tvremote_volume_down">音量-</string>
+    <string name="tvremote_play_pause">播放/暂停</string>
+    <string name="tvremote_next">下一首</string>
+    <string name="tvremote_previous">上一首</string>
+    <string name="tvremote_stop">停止</string>
     <string name="tvremote_led_label">指示灯</string>
     <string name="tvremote_ok">OK</string>
+
+    <!-- Quick Settings Tile -->
+    <string name="tile_connected">已连接</string>
+    <string name="tile_disconnected">未连接</string>
 
     <!-- Preset macro descriptions -->
     <string name="preset_clear_desc">清除终端屏幕</string>

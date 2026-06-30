@@ -41,5 +41,9 @@ value class ConsumerReport(
         const val USAGE_VOLUME_UP = 0xE9
         const val USAGE_VOLUME_DOWN = 0xEA
         const val USAGE_AC_SEARCH = 0x221
+        const val USAGE_PLAY_PAUSE = 0xCD
+        const val USAGE_NEXT = 0xB5
+        const val USAGE_PREVIOUS = 0xB6
+        const val USAGE_STOP = 0xB7
     }
 }
